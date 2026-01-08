@@ -82,4 +82,40 @@ class Database {
 			)
 		);
 	}
+
+	public function get_entries( int $limit = 100 ): array {
+		global $wpdb;
+
+		$table_name = $this->get_table_name();
+
+		return (array) $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, object_type, object_id, url_path, deleted_at
+				FROM {$table_name}
+				ORDER BY deleted_at DESC
+				LIMIT %d",
+				$limit
+			),
+			ARRAY_A
+		);
+	}
+
+	public function delete_entries( array $ids ): int {
+		global $wpdb;
+
+		$table_name = $this->get_table_name();
+		$ids        = array_values( array_filter( array_map( 'absint', $ids ) ) );
+
+		if ( empty( $ids ) ) {
+			return 0;
+		}
+
+		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+		$query        = $wpdb->prepare(
+			"DELETE FROM {$table_name} WHERE id IN ({$placeholders})",
+			$ids
+		);
+
+		return (int) $wpdb->query( $query );
+	}
 }
