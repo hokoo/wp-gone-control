@@ -39,100 +39,52 @@ class Settings {
 	private static function renderEntriesHtml(): string {
 		$db      = new Database();
 		$entries = $db->get_entries();
+		$status  = isset( $_GET['wp_gone_control_status'] ) ? sanitize_key( wp_unslash( $_GET['wp_gone_control_status'] ) ) : '';
+		$notice  = self::getNoticeData( $status );
 
 		ob_start();
-		?>
-		<div class="wp-gone-control-admin">
-			<?php self::renderNotice(); ?>
-			<h2><?php esc_html_e( 'Добавить запись', 'wp-gone-control' ); ?></h2>
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-				<input type="hidden" name="action" value="wp_gone_control_add_entry">
-				<?php wp_nonce_field( 'wp_gone_control_add_entry' ); ?>
-				<input type="text" name="wp_gone_control_url" class="regular-text" placeholder="/removed-path" required>
-				<button type="submit" class="button button-primary">
-					<?php esc_html_e( 'Добавить', 'wp-gone-control' ); ?>
-				</button>
-			</form>
-
-			<h2><?php esc_html_e( 'Список записей', 'wp-gone-control' ); ?></h2>
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-				<input type="hidden" name="action" value="wp_gone_control_delete_entries">
-				<?php wp_nonce_field( 'wp_gone_control_delete_entries' ); ?>
-				<table class="widefat striped">
-					<thead>
-						<tr>
-							<th class="manage-column column-cb check-column">
-								<input type="checkbox" onclick="jQuery('.wp-gone-control-entry-checkbox').prop('checked', this.checked);">
-							</th>
-							<th><?php esc_html_e( 'URL', 'wp-gone-control' ); ?></th>
-							<th><?php esc_html_e( 'Тип объекта', 'wp-gone-control' ); ?></th>
-							<th><?php esc_html_e( 'ID объекта', 'wp-gone-control' ); ?></th>
-							<th><?php esc_html_e( 'Дата удаления', 'wp-gone-control' ); ?></th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php if ( empty( $entries ) ) : ?>
-							<tr>
-								<td colspan="5"><?php esc_html_e( 'Нет записей.', 'wp-gone-control' ); ?></td>
-							</tr>
-						<?php else : ?>
-							<?php foreach ( $entries as $entry ) : ?>
-								<tr>
-									<th class="check-column">
-										<input type="checkbox" class="wp-gone-control-entry-checkbox" name="wp_gone_control_ids[]" value="<?php echo esc_attr( (string) $entry['id'] ); ?>">
-									</th>
-									<td><?php echo esc_html( $entry['url_path'] ); ?></td>
-									<td><?php echo esc_html( $entry['object_type'] ); ?></td>
-									<td><?php echo esc_html( (string) $entry['object_id'] ); ?></td>
-									<td><?php echo esc_html( $entry['deleted_at'] ); ?></td>
-								</tr>
-							<?php endforeach; ?>
-						<?php endif; ?>
-					</tbody>
-				</table>
-				<p>
-					<button type="submit" class="button button-secondary">
-						<?php esc_html_e( 'Удалить выбранные', 'wp-gone-control' ); ?>
-					</button>
-				</p>
-			</form>
-		</div>
-		<?php
+		$template_path = PLUGIN_DIR . 'templates/admin-entries.php';
+		load_template(
+			$template_path,
+			false,
+			[
+				'entries' => $entries,
+				'notice'  => $notice,
+			]
+		);
 		return (string) ob_get_clean();
 	}
 
-	private static function renderNotice(): void {
-		$status = isset( $_GET['wp_gone_control_status'] ) ? sanitize_key( wp_unslash( $_GET['wp_gone_control_status'] ) ) : '';
+	private static function getNoticeData( string $status ): array {
 		if ( '' === $status ) {
-			return;
+			return [];
 		}
 
 		$message = '';
 		$class   = 'notice-success';
 
 		if ( 'added' === $status ) {
-			$message = __( 'Запись добавлена.', 'wp-gone-control' );
+			$message = __( 'Entry added.', 'wp-gone-control' );
 		} elseif ( 'deleted' === $status ) {
-			$message = __( 'Записи удалены.', 'wp-gone-control' );
+			$message = __( 'Entries deleted.', 'wp-gone-control' );
 		} elseif ( 'error' === $status ) {
-			$message = __( 'Не удалось выполнить действие.', 'wp-gone-control' );
+			$message = __( 'Unable to complete the action.', 'wp-gone-control' );
 			$class   = 'notice-error';
 		}
 
 		if ( '' === $message ) {
-			return;
+			return [];
 		}
 
-		printf(
-			'<div class="notice %1$s"><p>%2$s</p></div>',
-			esc_attr( $class ),
-			esc_html( $message )
-		);
+		return [
+			'message' => $message,
+			'class'   => $class,
+		];
 	}
 
 	public static function handleAddEntry(): void {
 		if ( ! current_user_can( self::MANAGE_CAPS ) && ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Недостаточно прав.', 'wp-gone-control' ) );
+			wp_die( esc_html__( 'Insufficient permissions.', 'wp-gone-control' ) );
 		}
 
 		check_admin_referer( 'wp_gone_control_add_entry' );
@@ -152,7 +104,7 @@ class Settings {
 
 	public static function handleDeleteEntries(): void {
 		if ( ! current_user_can( self::MANAGE_CAPS ) && ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Недостаточно прав.', 'wp-gone-control' ) );
+			wp_die( esc_html__( 'Insufficient permissions.', 'wp-gone-control' ) );
 		}
 
 		check_admin_referer( 'wp_gone_control_delete_entries' );
