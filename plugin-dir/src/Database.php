@@ -69,7 +69,7 @@ class Database {
 		);
 	}
 
-	public function url_was_removed( $path ) {
+	public function url_exists( $path ): bool {
 		global $wpdb;
 
 		$table_name = $this->get_table_name();

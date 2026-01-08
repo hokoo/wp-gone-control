@@ -26,13 +26,18 @@ class TemplateController {
 			return;
 		}
 
-		if ( ! $this->database->url_was_removed( $path ) ) {
+		if ( ! $this->database->url_exists( $path ) ) {
+			return;
+		}
+
+		$proceed = apply_filters( 'itron/wp-gone-control/send-410', true, $path );
+		if ( ! $proceed ) {
 			return;
 		}
 
 		status_header( 410 );
 		nocache_headers();
 
-		do_action( 'wp_gone_control_before_template', $path );
+		do_action( 'itron/wp-gone-control/410-sent', $path );
 	}
 }

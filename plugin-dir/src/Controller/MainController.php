@@ -7,8 +7,8 @@ use WP_User;
 use iTRON\WPGoneControl\Database;
 
 class MainController {
-	private $database;
-	private $template_controller;
+	private Database $database;
+	private TemplateController $template_controller;
 
 	public function __construct( Database $database, TemplateController $template_controller ) {
 		$this->database            = $database;
@@ -21,10 +21,6 @@ class MainController {
 		add_action( 'pre_delete_term', array( $this, 'handle_term_remove' ), 10, 2 );
 		add_action( 'delete_user', array( $this, 'handle_user_remove' ), 10, 1 );
 		add_action( 'template_redirect', array( $this->template_controller, 'maybe_send_410' ), 0 );
-	}
-
-	public function activate() {
-		$this->database->activate();
 	}
 
 	public function handle_post_remove( $post_id ) {
@@ -55,9 +51,19 @@ class MainController {
 		}
 
 		$term_link = get_term_link( $term_obj, $taxonomy );
-		if ( ! is_wp_error( $term_link ) ) {
-			$this->database->store_url( $term_link, 'term', (int) $term_obj->term_id );
+		if ( is_wp_error( $term_link ) ) {
+			return;
 		}
+
+		if ( ! $this->is_term_public( (int) $term_obj->term_id, $taxonomy ) ) {
+			return;
+		}
+
+		$this->database->store_url( $term_link, 'term', (int) $term_obj->term_id );
+	}
+
+	private function is_term_public( $term_id, $taxonomy ): bool {
+		return apply_filters( 'itron/wp-gone-control/is-term-public', true, $term_id, $taxonomy );
 	}
 
 	public function handle_user_remove( $user_id ) {
@@ -66,8 +72,7 @@ class MainController {
 			return;
 		}
 
-		$is_public = apply_filters( 'wp_gone_control_is_user_public', $this->user_is_public( $user ), $user );
-		if ( ! $is_public ) {
+		if ( ! $this->user_is_public( $user ) ) {
 			return;
 		}
 
@@ -77,18 +82,20 @@ class MainController {
 		}
 	}
 
-	private function post_is_public( WP_Post $post ) {
+	private function post_is_public( WP_Post $post ): bool {
 		$post_type = get_post_type_object( $post->post_type );
-		$statuses  = apply_filters( 'wp_gone_control_post_statuses', array( 'publish' ) );
+		$statuses  = apply_filters( 'itron/wp-gone-control/post-statuses', [ 'publish' ] );
 
 		if ( ! $post_type || ! $post_type->public ) {
 			return false;
 		}
 
-		return in_array( $post->post_status, (array) $statuses, true );
+		$public = in_array( $post->post_status, (array) $statuses, true );
+		return apply_filters( 'itron/wp-gone-control/is-post-public', $public, $post );
 	}
 
-	private function user_is_public( WP_User $user ) {
-		return true;
+	private function user_is_public( WP_User $user ): bool {
+		// Attention: return boolean when filtering this!
+		return apply_filters( 'itron/wp-gone-control/is-user-public', true, $user );
 	}
 }

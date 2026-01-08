@@ -11,6 +11,21 @@
  * Text Domain: wp-gone-control
  */
 
+namespace iTRON\WPGoneControl;
+
+use iTRON\WPGoneControl\Controller\Activation;
+use iTRON\WPGoneControl\Controller\MainController;
+use iTRON\WPGoneControl\Controller\TemplateController;
+
+const PLUGIN_SLUG = 'wp-gone-control';
+const VERSION     = '0.2.0';
+
+const PLUGIN_MAIN_FILE_PATH = __FILE__;
+define( __NAMESPACE__ . '\PLUGIN_NAME', plugin_basename( __FILE__ ) );
+define( __NAMESPACE__ . '\PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( __NAMESPACE__ . '\PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+define( __NAMESPACE__ . '\OPTIONS_MODE', is_multisite() ? 'network' : 'theme_options' );
+
 if ( ! defined( 'ABSPATH' ) ) {
 	return;
 }
@@ -19,9 +34,14 @@ if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 	require __DIR__ . '/vendor/autoload.php';
 }
 
-$gone_control_database = new iTRON\WPGoneControl\Database();
-$gone_control_template = new iTRON\WPGoneControl\Controller\TemplateController( $gone_control_database );
-$gone_control_main     = new iTRON\WPGoneControl\Controller\MainController( $gone_control_database, $gone_control_template );
+$db       = new Database();
+$template = new TemplateController( $db );
+$main     = new MainController( $db, $template );
+$activation = new Activation( $db );
 
-register_activation_hook( __FILE__, array( $gone_control_main, 'activate' ) );
-$gone_control_main->register();
+register_activation_hook( __FILE__, [ $activation, 'processActivationHook' ] );
+
+$activation::init();
+$main->register();
+
+( new Settings() )::init();
