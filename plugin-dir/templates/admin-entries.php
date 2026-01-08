@@ -23,27 +23,29 @@ $notice  = $args['notice'] ?? [];
 			<div class="wp-gone-control-pagination">
 				<label>
 					<?php esc_html_e( 'Entries per page', 'wp-gone-control' ); ?>
-					<input
-						type="number"
-						min="1"
-						step="1"
-						class="small-text wp-gone-control-per-page"
-						data-default="200"
-						aria-label="<?php esc_attr_e( 'Entries per page', 'wp-gone-control' ); ?>"
-					>
+						<input
+							type="number"
+							min="1"
+							step="1"
+							class="small-text wp-gone-control-per-page"
+							data-default="200"
+							value="200"
+							aria-label="<?php esc_attr_e( 'Entries per page', 'wp-gone-control' ); ?>"
+						>
 				</label>
 				<button type="button" class="button wp-gone-control-prev">
 					<?php esc_html_e( 'Previous', 'wp-gone-control' ); ?>
 				</button>
 				<label>
 					<?php esc_html_e( 'Page', 'wp-gone-control' ); ?>
-					<input
-						type="number"
-						min="1"
-						step="1"
-						class="small-text wp-gone-control-page-input"
-						aria-label="<?php esc_attr_e( 'Current page', 'wp-gone-control' ); ?>"
-					>
+						<input
+							type="number"
+							min="1"
+							step="1"
+							class="small-text wp-gone-control-page-input"
+							value="1"
+							aria-label="<?php esc_attr_e( 'Current page', 'wp-gone-control' ); ?>"
+						>
 				</label>
 				<span class="wp-gone-control-page-total" aria-live="polite"></span>
 				<button type="button" class="button wp-gone-control-next">
