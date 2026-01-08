@@ -18,7 +18,8 @@
 	const $perPageInput = $pagination.find('.wp-gone-control-per-page');
 	const $prev = $pagination.find('.wp-gone-control-prev');
 	const $next = $pagination.find('.wp-gone-control-next');
-	const $info = $pagination.find('.wp-gone-control-page-info');
+	const $pageInput = $pagination.find('.wp-gone-control-page-input');
+	const $total = $pagination.find('.wp-gone-control-page-total');
 
 	let perPage = parseInt(window.localStorage.getItem(storageKey), 10);
 	if (!perPage || perPage < 1) {
@@ -46,7 +47,8 @@
 
 		$prev.prop('disabled', currentPage <= 1);
 		$next.prop('disabled', currentPage >= totalPages);
-		$info.text(`Page ${currentPage} / ${totalPages}`);
+		$pageInput.val(currentPage);
+		$total.text(`of ${totalPages}`);
 	};
 
 	$prev.on('click', () => {
@@ -73,6 +75,16 @@
 		perPage = value;
 		window.localStorage.setItem(storageKey, String(perPage));
 		currentPage = 1;
+		render();
+	});
+
+	$pageInput.on('change', () => {
+		let value = parseInt($pageInput.val(), 10);
+		if (!value || value < 1) {
+			value = 1;
+		}
+
+		currentPage = Math.min(value, getTotalPages());
 		render();
 	});
 

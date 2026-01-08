@@ -70,6 +70,13 @@ class Settings {
 			true
 		);
 
+		wp_enqueue_style(
+			'wp-gone-control-admin-entries',
+			PLUGIN_URL . 'assets/admin-entries.css',
+			[],
+			VERSION
+		);
+
 		wp_localize_script(
 			'wp-gone-control-admin-entries',
 			'wpGoneControlEntries',
