@@ -1,0 +1,38 @@
+<?php
+
+namespace WPGoneControl\Controller;
+
+use WPGoneControl\Database;
+
+class TemplateController {
+	private $database;
+
+	public function __construct( Database $database ) {
+		$this->database = $database;
+	}
+
+	public function maybe_send_410() {
+		if ( is_admin() || ! is_404() ) {
+			return;
+		}
+
+		$path = '';
+		if ( isset( $_SERVER['REQUEST_URI'] ) ) {
+			$path = wp_parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH );
+		}
+
+		$path = $this->database->normalize_path( $path );
+		if ( ! $path ) {
+			return;
+		}
+
+		if ( ! $this->database->url_was_removed( $path ) ) {
+			return;
+		}
+
+		status_header( 410 );
+		nocache_headers();
+
+		do_action( 'wp_gone_control_before_template', $path );
+	}
+}
