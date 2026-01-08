@@ -22,7 +22,7 @@
 
 	let perPage = parseInt(window.localStorage.getItem(storageKey), 10);
 	if (!perPage || perPage < 1) {
-		perPage = parseInt($perPageInput.data('default'), 10) || 20;
+		perPage = parseInt($perPageInput.data('default'), 10) || 200;
 	}
 
 	$perPageInput.val(perPage);

@@ -20,12 +20,34 @@ $notice  = $args['notice'] ?? [];
 	</form>
 
 	<h2><?php esc_html_e( 'Entry list', 'wp-gone-control' ); ?></h2>
-	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-		<input type="hidden" name="action" value="wp_gone_control_delete_entries">
-		<?php wp_nonce_field( 'wp_gone_control_delete_entries' ); ?>
-		<table class="widefat striped">
-			<thead>
-				<tr>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<input type="hidden" name="action" value="wp_gone_control_delete_entries">
+			<?php wp_nonce_field( 'wp_gone_control_delete_entries' ); ?>
+			<?php if ( ! empty( $entries ) ) : ?>
+				<div class="wp-gone-control-pagination">
+					<label>
+						<?php esc_html_e( 'Entries per page', 'wp-gone-control' ); ?>
+						<input
+							type="number"
+							min="1"
+							step="1"
+							class="small-text wp-gone-control-per-page"
+							data-default="200"
+							aria-label="<?php esc_attr_e( 'Entries per page', 'wp-gone-control' ); ?>"
+						>
+					</label>
+					<button type="button" class="button wp-gone-control-prev">
+						<?php esc_html_e( 'Previous', 'wp-gone-control' ); ?>
+					</button>
+					<span class="wp-gone-control-page-info" aria-live="polite"></span>
+					<button type="button" class="button wp-gone-control-next">
+						<?php esc_html_e( 'Next', 'wp-gone-control' ); ?>
+					</button>
+				</div>
+			<?php endif; ?>
+			<table class="widefat striped">
+				<thead>
+					<tr>
 					<th class="manage-column column-cb check-column">
 						<input type="checkbox" onclick="jQuery('.wp-gone-control-entry-checkbox').prop('checked', this.checked);">
 					</th>
@@ -54,32 +76,10 @@ $notice  = $args['notice'] ?? [];
 					<?php endforeach; ?>
 				<?php endif; ?>
 			</tbody>
-		</table>
-		<?php if ( ! empty( $entries ) ) : ?>
-			<div class="wp-gone-control-pagination">
-				<label>
-					<?php esc_html_e( 'Entries per page', 'wp-gone-control' ); ?>
-					<input
-						type="number"
-						min="1"
-						step="1"
-						class="small-text wp-gone-control-per-page"
-						data-default="20"
-						aria-label="<?php esc_attr_e( 'Entries per page', 'wp-gone-control' ); ?>"
-					>
-				</label>
-				<button type="button" class="button wp-gone-control-prev">
-					<?php esc_html_e( 'Previous', 'wp-gone-control' ); ?>
-				</button>
-				<span class="wp-gone-control-page-info" aria-live="polite"></span>
-				<button type="button" class="button wp-gone-control-next">
-					<?php esc_html_e( 'Next', 'wp-gone-control' ); ?>
-				</button>
-			</div>
-		<?php endif; ?>
-		<p>
-			<button type="submit" class="button button-secondary">
-				<?php esc_html_e( 'Delete selected', 'wp-gone-control' ); ?>
+			</table>
+			<p>
+				<button type="submit" class="button button-secondary">
+					<?php esc_html_e( 'Delete selected', 'wp-gone-control' ); ?>
 			</button>
 		</p>
 	</form>
