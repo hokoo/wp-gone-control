@@ -1,8 +1,9 @@
 <?php
 /**
- * @var array $entries
- * @var array $notice
+ * @var array $args
  */
+$entries = $args['entries'] ?? [];
+$notice  = $args['notice'] ?? [];
 ?>
 <div class="wp-gone-control-admin">
 	<?php if ( ! empty( $notice ) ) : ?>
