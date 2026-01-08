@@ -3,7 +3,7 @@
  * Plugin Name: Gone Control: 410 status for removed objects
  * Plugin URI: https://github.com/hokoo/wp-410
  * Description: Stores URLs of removed public objects and serves HTTP 410 for them.
- * Version: 0.1.0
+ * Version: 0.2.0
  * Author: Igor Tron (itron)
  * Author URI: https://github.com/hokoo
  * License: GPL-2.0-or-later
