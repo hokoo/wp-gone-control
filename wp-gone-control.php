@@ -15,27 +15,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	return;
 }
 
-spl_autoload_register(
-	function ( $class ) {
-		$prefix   = 'WPGoneControl\\';
-		$base_dir = __DIR__ . '/src/';
+if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
+	require __DIR__ . '/vendor/autoload.php';
+}
 
-		if ( 0 !== strpos( $class, $prefix ) ) {
-			return;
-		}
-
-		$relative_class = substr( $class, strlen( $prefix ) );
-		$file           = $base_dir . str_replace( '\\', '/', $relative_class ) . '.php';
-
-		if ( file_exists( $file ) ) {
-			require $file;
-		}
-	}
-);
-
-$gone_control_database = new WPGoneControl\Database();
-$gone_control_template = new WPGoneControl\Controller\TemplateController( $gone_control_database );
-$gone_control_main     = new WPGoneControl\Controller\MainController( $gone_control_database, $gone_control_template );
+$gone_control_database = new iTRON\WPGoneControl\Database();
+$gone_control_template = new iTRON\WPGoneControl\Controller\TemplateController( $gone_control_database );
+$gone_control_main     = new iTRON\WPGoneControl\Controller\MainController( $gone_control_database, $gone_control_template );
 
 register_activation_hook( __FILE__, array( $gone_control_main, 'activate' ) );
 $gone_control_main->register();

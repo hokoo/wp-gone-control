@@ -1,8 +1,8 @@
 <?php
 
-namespace WPGoneControl\Controller;
+namespace iTRON\WPGoneControl\Controller;
 
-use WPGoneControl\Database;
+use iTRON\WPGoneControl\Database;
 
 class TemplateController {
 	private $database;

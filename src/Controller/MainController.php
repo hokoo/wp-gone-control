@@ -1,10 +1,10 @@
 <?php
 
-namespace WPGoneControl\Controller;
+namespace iTRON\WPGoneControl\Controller;
 
 use WP_Post;
 use WP_User;
-use WPGoneControl\Database;
+use iTRON\WPGoneControl\Database;
 
 class MainController {
 	private $database;

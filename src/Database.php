@@ -1,6 +1,6 @@
 <?php
 
-namespace WPGoneControl;
+namespace iTRON\WPGoneControl;
 
 class Database {
 	public function get_table_name() {
