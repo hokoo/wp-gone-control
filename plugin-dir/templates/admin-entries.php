@@ -42,7 +42,7 @@ $notice  = $args['notice'] ?? [];
 					</tr>
 				<?php else : ?>
 					<?php foreach ( $entries as $entry ) : ?>
-						<tr>
+						<tr class="wp-gone-control-entry-row">
 							<th class="check-column">
 								<input type="checkbox" class="wp-gone-control-entry-checkbox" name="wp_gone_control_ids[]" value="<?php echo esc_attr( (string) $entry['id'] ); ?>">
 							</th>
@@ -55,6 +55,28 @@ $notice  = $args['notice'] ?? [];
 				<?php endif; ?>
 			</tbody>
 		</table>
+		<?php if ( ! empty( $entries ) ) : ?>
+			<div class="wp-gone-control-pagination">
+				<label>
+					<?php esc_html_e( 'Entries per page', 'wp-gone-control' ); ?>
+					<input
+						type="number"
+						min="1"
+						step="1"
+						class="small-text wp-gone-control-per-page"
+						data-default="20"
+						aria-label="<?php esc_attr_e( 'Entries per page', 'wp-gone-control' ); ?>"
+					>
+				</label>
+				<button type="button" class="button wp-gone-control-prev">
+					<?php esc_html_e( 'Previous', 'wp-gone-control' ); ?>
+				</button>
+				<span class="wp-gone-control-page-info" aria-live="polite"></span>
+				<button type="button" class="button wp-gone-control-next">
+					<?php esc_html_e( 'Next', 'wp-gone-control' ); ?>
+				</button>
+			</div>
+		<?php endif; ?>
 		<p>
 			<button type="submit" class="button button-secondary">
 				<?php esc_html_e( 'Delete selected', 'wp-gone-control' ); ?>
