@@ -15,6 +15,7 @@ class Settings {
 		add_action( 'after_setup_theme', [ self::class, 'loadCarbon' ] );
 		add_action( 'admin_post_wp_gone_control_add_entry', [ self::class, 'handleAddEntry' ] );
 		add_action( 'admin_post_wp_gone_control_delete_entries', [ self::class, 'handleDeleteEntries' ] );
+		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueueAdminAssets' ] );
 
 		self::$optionPrefix = PLUGIN_SLUG . '_';
 	}
@@ -53,6 +54,37 @@ class Settings {
 			]
 		);
 		return (string) ob_get_clean();
+	}
+
+	public static function enqueueAdminAssets(): void {
+		$screen = get_current_screen();
+		if ( ! $screen || 'toplevel_page_wp-gone-control' !== $screen->id ) {
+			return;
+		}
+
+		wp_enqueue_script(
+			'wp-gone-control-admin-entries',
+			PLUGIN_URL . 'assets/admin-entries.js',
+			[ 'jquery' ],
+			VERSION,
+			true
+		);
+
+		wp_enqueue_style(
+			'wp-gone-control-admin-entries',
+			PLUGIN_URL . 'assets/admin-entries.css',
+			[],
+			VERSION
+		);
+
+		wp_localize_script(
+			'wp-gone-control-admin-entries',
+			'wpGoneControlEntries',
+			[
+				'userId'           => get_current_user_id(),
+				'storageKeyPrefix' => 'wp_gone_control_entries_per_page_',
+			]
+		);
 	}
 
 	private static function getNoticeData( string $status ): array {
