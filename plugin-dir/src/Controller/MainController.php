@@ -63,7 +63,7 @@ class MainController {
 	}
 
 	private function is_term_public( $term_id, $taxonomy ): bool {
-		return apply_filters( 'itron/wp-gone-control/is-term-public', true, $term_id, $taxonomy );
+		return apply_filters( 'itron/gone-control/is-term-public', true, $term_id, $taxonomy );
 	}
 
 	public function handle_user_remove( $user_id ) {
@@ -84,18 +84,18 @@ class MainController {
 
 	private function post_is_public( WP_Post $post ): bool {
 		$post_type = get_post_type_object( $post->post_type );
-		$statuses  = apply_filters( 'itron/wp-gone-control/post-statuses', [ 'publish' ] );
+		$statuses  = apply_filters( 'itron/gone-control/post-statuses', [ 'publish' ] );
 
 		if ( ! $post_type || ! $post_type->public ) {
 			return false;
 		}
 
 		$public = in_array( $post->post_status, (array) $statuses, true );
-		return apply_filters( 'itron/wp-gone-control/is-post-public', $public, $post );
+		return apply_filters( 'itron/gone-control/is-post-public', $public, $post );
 	}
 
 	private function user_is_public( WP_User $user ): bool {
 		// Attention: return boolean when filtering this!
-		return apply_filters( 'itron/wp-gone-control/is-user-public', true, $user );
+		return apply_filters( 'itron/gone-control/is-user-public', true, $user );
 	}
 }

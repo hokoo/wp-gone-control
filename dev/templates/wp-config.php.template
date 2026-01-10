@@ -62,6 +62,6 @@ if ( ! defined( "WP_CONTENT_DIR" ) ) {
 
 // Carbon Fields does not work with such a path configuration like here (symlinked directory),
 // so we need to define the path manually.
-define( 'Carbon_Fields\DIR', WP_CONTENT_DIR . '/plugins/wp-gone-control/vendor/htmlburger/carbon-fields' );
+define( 'Carbon_Fields\DIR', WP_CONTENT_DIR . '/plugins/gone-control/vendor/htmlburger/carbon-fields' );
 
 require_once ABSPATH . 'wp-settings.php';

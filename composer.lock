@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8ec47954291762038114bedfa94de3d7",
+    "content-hash": "41ac88cc30a599f0df7777b4b82b7291",
     "packages": [
         {
             "name": "composer/ca-bundle",
@@ -5195,24 +5195,6 @@
             "homepage": "https://wordpress.org/plugins/plugin-check/"
         },
         {
-            "name": "wpackagist-plugin/stream",
-            "version": "4.1.1",
-            "source": {
-                "type": "svn",
-                "url": "https://plugins.svn.wordpress.org/stream/",
-                "reference": "tags/4.1.1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/stream.4.1.1.zip"
-            },
-            "require": {
-                "composer/installers": "^1.0 || ^2.0"
-            },
-            "type": "wordpress-plugin",
-            "homepage": "https://wordpress.org/plugins/stream/"
-        },
-        {
             "name": "wpackagist-plugin/wp-crontrol",
             "version": "1.20.0",
             "source": {
@@ -5247,24 +5229,6 @@
             },
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/wp-data-logger/"
-        },
-        {
-            "name": "wpackagist-plugin/wp-mail-smtp",
-            "version": "4.7.1",
-            "source": {
-                "type": "svn",
-                "url": "https://plugins.svn.wordpress.org/wp-mail-smtp/",
-                "reference": "tags/4.7.1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/wp-mail-smtp.4.7.1.zip"
-            },
-            "require": {
-                "composer/installers": "^1.0 || ^2.0"
-            },
-            "type": "wordpress-plugin",
-            "homepage": "https://wordpress.org/plugins/wp-mail-smtp/"
         }
     ],
     "packages-dev": [],

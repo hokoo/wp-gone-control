@@ -6,7 +6,7 @@ services:
     image: mysql:5.7
     stop_grace_period: 30s
     volumes:
-      - ~/mysql-data/itron/wp-gone-control:/var/lib/mysql
+      - ~/mysql-data/itron/gone-control:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: $DB_ROOT_PASSWORD
       MYSQL_DATABASE: $DB_NAME
@@ -15,7 +15,7 @@ services:
     ports:
       - "3066:3306"
     networks:
-      - wp-gone-control
+      - gone-control
 
   php:
     build:
@@ -46,7 +46,7 @@ services:
     volumes:
       - ./:/srv/web/
     networks:
-      - wp-gone-control
+      - gone-control
 
   nginx:
     container_name: "${PROJECT_NAME}_nginx"
@@ -62,8 +62,8 @@ services:
       - "80:80"
       - "443:443"
     networks:
-      - wp-gone-control
+      - gone-control
 
 networks:
-  wp-gone-control:
+  gone-control:
     driver: bridge

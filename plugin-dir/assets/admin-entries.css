@@ -1,4 +1,4 @@
-.wp-gone-control-entry-actions {
+.gone-control-entry-actions {
 	display: flex;
 	justify-content: space-between;
 	align-items: flex-end;
@@ -7,15 +7,15 @@
 	margin-bottom: 16px;
 }
 
-.wp-gone-control-pagination label {
+.gone-control-pagination label {
 	vertical-align: bottom;
 }
 
-.wp-gone-control-pagination .small-text {
+.gone-control-pagination .small-text {
 	vertical-align: bottom;
 }
 
-.wp-gone-control-page-total {
+.gone-control-page-total {
 	display: inline-block;
 	margin: 0 4px;
 }

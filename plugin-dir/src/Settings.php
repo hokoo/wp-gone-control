@@ -8,13 +8,13 @@ use Carbon_Fields\Field;
 
 class Settings {
 	public static string $optionPrefix;
-	const MANAGE_CAPS = 'wp_gone_control_manage_options';
+	const MANAGE_CAPS = 'gone_control_manage_options';
 
 	public static function init(): void {
 		add_action( 'carbon_fields_register_fields', [ self::class, 'createOptions' ] );
 		add_action( 'after_setup_theme', [ self::class, 'loadCarbon' ] );
-		add_action( 'admin_post_wp_gone_control_add_entry', [ self::class, 'handleAddEntry' ] );
-		add_action( 'admin_post_wp_gone_control_delete_entries', [ self::class, 'handleDeleteEntries' ] );
+		add_action( 'admin_post_gone_control_add_entry', [ self::class, 'handleAddEntry' ] );
+		add_action( 'admin_post_gone_control_delete_entries', [ self::class, 'handleDeleteEntries' ] );
 		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueueAdminAssets' ] );
 
 		self::$optionPrefix = PLUGIN_SLUG . '_';
@@ -28,10 +28,10 @@ class Settings {
 		$option_page = Container::make( OPTIONS_MODE, 'WP Gone Control' );
 		$settings    = [];
 
-		$settings[] = Field::make( 'html', 'wp_gone_control_entries' )
+		$settings[] = Field::make( 'html', 'gone_control_entries' )
 		                  ->set_html( self::renderEntriesHtml() );
 
-		$option_page->set_page_file( 'wp-gone-control' )
+		$option_page->set_page_file( 'gone-control' )
 		            ->add_fields( $settings )
 		            ->set_icon( 'dashicons-drumstick' )
 		            ->where( 'current_user_capability', 'IN', [ self::MANAGE_CAPS, 'manage_options' ] );
@@ -40,7 +40,7 @@ class Settings {
 	private static function renderEntriesHtml(): string {
 		$db      = new Database();
 		$entries = $db->get_entries();
-		$status  = isset( $_GET['wp_gone_control_status'] ) ? sanitize_key( wp_unslash( $_GET['wp_gone_control_status'] ) ) : '';
+		$status  = isset( $_GET['gone_control_status'] ) ? sanitize_key( wp_unslash( $_GET['gone_control_status'] ) ) : '';
 		$notice  = self::getNoticeData( $status );
 
 		ob_start();
@@ -58,12 +58,12 @@ class Settings {
 
 	public static function enqueueAdminAssets(): void {
 		$screen = get_current_screen();
-		if ( ! $screen || 'toplevel_page_wp-gone-control' !== $screen->id ) {
+		if ( ! $screen || 'toplevel_page_gone-control' !== $screen->id ) {
 			return;
 		}
 
 		wp_enqueue_script(
-			'wp-gone-control-admin-entries',
+			'gone-control-admin-entries',
 			PLUGIN_URL . 'assets/admin-entries.js',
 			[ 'jquery' ],
 			VERSION,
@@ -71,18 +71,18 @@ class Settings {
 		);
 
 		wp_enqueue_style(
-			'wp-gone-control-admin-entries',
+			'gone-control-admin-entries',
 			PLUGIN_URL . 'assets/admin-entries.css',
 			[],
 			VERSION
 		);
 
 		wp_localize_script(
-			'wp-gone-control-admin-entries',
+			'gone-control-admin-entries',
 			'wpGoneControlEntries',
 			[
 				'userId'           => get_current_user_id(),
-				'storageKeyPrefix' => 'wp_gone_control_entries_per_page_',
+				'storageKeyPrefix' => 'gone_control_entries_per_page_',
 			]
 		);
 	}
@@ -96,11 +96,11 @@ class Settings {
 		$class   = 'notice-success';
 
 		if ( 'added' === $status ) {
-			$message = __( 'Entry added.', 'wp-gone-control' );
+			$message = __( 'Entry added.', 'gone-control' );
 		} elseif ( 'deleted' === $status ) {
-			$message = __( 'Entries deleted.', 'wp-gone-control' );
+			$message = __( 'Entries deleted.', 'gone-control' );
 		} elseif ( 'error' === $status ) {
-			$message = __( 'Unable to complete the action.', 'wp-gone-control' );
+			$message = __( 'Unable to complete the action.', 'gone-control' );
 			$class   = 'notice-error';
 		}
 
@@ -116,12 +116,12 @@ class Settings {
 
 	public static function handleAddEntry(): void {
 		if ( ! current_user_can( self::MANAGE_CAPS ) && ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Insufficient permissions.', 'wp-gone-control' ) );
+			wp_die( esc_html__( 'Insufficient permissions.', 'gone-control' ) );
 		}
 
-		check_admin_referer( 'wp_gone_control_add_entry' );
+		check_admin_referer( 'gone_control_add_entry' );
 
-		$url = isset( $_POST['wp_gone_control_url'] ) ? sanitize_text_field( wp_unslash( $_POST['wp_gone_control_url'] ) ) : '';
+		$url = isset( $_POST['gone_control_url'] ) ? sanitize_text_field( wp_unslash( $_POST['gone_control_url'] ) ) : '';
 		$url = trim( $url );
 
 		if ( '' === $url ) {
@@ -136,12 +136,12 @@ class Settings {
 
 	public static function handleDeleteEntries(): void {
 		if ( ! current_user_can( self::MANAGE_CAPS ) && ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Insufficient permissions.', 'wp-gone-control' ) );
+			wp_die( esc_html__( 'Insufficient permissions.', 'gone-control' ) );
 		}
 
-		check_admin_referer( 'wp_gone_control_delete_entries' );
+		check_admin_referer( 'gone_control_delete_entries' );
 
-		$ids = isset( $_POST['wp_gone_control_ids'] ) ? (array) wp_unslash( $_POST['wp_gone_control_ids'] ) : [];
+		$ids = isset( $_POST['gone_control_ids'] ) ? (array) wp_unslash( $_POST['gone_control_ids'] ) : [];
 		$ids = array_map( 'absint', $ids );
 
 		$db = new Database();
@@ -153,10 +153,10 @@ class Settings {
 	private static function redirectWithStatus( string $status ): void {
 		$redirect = wp_get_referer();
 		if ( ! $redirect ) {
-			$redirect = admin_url( 'admin.php?page=wp-gone-control' );
+			$redirect = admin_url( 'admin.php?page=gone-control' );
 		}
 
-		wp_safe_redirect( add_query_arg( 'wp_gone_control_status', $status, $redirect ) );
+		wp_safe_redirect( add_query_arg( 'gone_control_status', $status, $redirect ) );
 		exit;
 	}
 

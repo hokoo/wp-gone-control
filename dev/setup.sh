@@ -23,11 +23,11 @@ fi
 # Create symlink for the plugin in the wordpress directory
 echo -e "${RCYAN}Create symlink for the plugin in the wordpress directory${COLOR_OFF}"
 # Check if file exists
-if [ ! -L ./wordpress/wp-content/plugins/wp-gone-control ]; then
+if [ ! -L ./wordpress/wp-content/plugins/gone-control ]; then
   echo -e "${RRED}Creating...${COLOR_OFF}";
-  ln -s /srv/web/plugin-dir/ ./wordpress/wp-content/plugins/wp-gone-control
+  ln -s /srv/web/plugin-dir/ ./wordpress/wp-content/plugins/gone-control
 fi
-echo -e "${ICYAN}Result: ${RYELLOW}$(ls -l ./wordpress/wp-content/plugins/ | grep wp-gone-control)${COLOR_OFF}"
+echo -e "${ICYAN}Result: ${RYELLOW}$(ls -l ./wordpress/wp-content/plugins/ | grep gone-control)${COLOR_OFF}"
 
 # install&configure WP
 echo -e "${RCYAN}WP database init${COLOR_OFF}"

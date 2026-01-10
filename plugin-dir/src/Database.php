@@ -6,7 +6,7 @@ class Database {
 	public function get_table_name() {
 		global $wpdb;
 
-		return $wpdb->prefix . 'wp_gone_control_gone_urls';
+		return $wpdb->prefix . 'gone_control_gone_urls';
 	}
 
 	public function activate() {

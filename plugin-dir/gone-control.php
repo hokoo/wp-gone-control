@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Gone Control: 410 status for removed objects
+ * Plugin Name: Gone Control
  * Plugin URI: https://github.com/hokoo/wp-410
  * Description: Stores URLs of removed public objects and serves HTTP 410 for them.
  * Version: 0.2.0
@@ -8,7 +8,7 @@
  * Author URI: https://github.com/hokoo
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: wp-gone-control
+ * Text Domain: gone-control
  */
 
 namespace iTRON\WPGoneControl;
@@ -17,7 +17,7 @@ use iTRON\WPGoneControl\Controller\Activation;
 use iTRON\WPGoneControl\Controller\MainController;
 use iTRON\WPGoneControl\Controller\TemplateController;
 
-const PLUGIN_SLUG = 'wp-gone-control';
+const PLUGIN_SLUG = 'gone-control';
 const VERSION     = '0.2.0';
 
 const PLUGIN_MAIN_FILE_PATH = __FILE__;

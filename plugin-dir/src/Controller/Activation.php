@@ -13,7 +13,7 @@ class Activation {
 	}
 
 	public static function init(): void {
-		add_action( 'itron/wp-gone-control/activate', [ self::class, 'processSecondPhaseActivation' ] );
+		add_action( 'itron/gone-control/activate', [ self::class, 'processSecondPhaseActivation' ] );
 	}
 
 	public function processActivationHook(): void {
@@ -24,7 +24,7 @@ class Activation {
 		// and the plugin cannot be properly activated during the activation hook
 		// because the activation hook runs too late. See wp-admin/plugins.php:do_action( 'activate_' . $plugin );
 		// So, we just need to schedule the second phase of activation for the next normal request.
-		// wp_schedule_single_event( time(), 'itron/wp-gone-control/activate' );
+		// wp_schedule_single_event( time(), 'itron/gone-control/activate' );
 	}
 
 	public static function processSecondPhaseActivation(): void {}
@@ -35,6 +35,6 @@ class Activation {
 		$role = get_role( 'administrator' );
 		$role->add_cap( Settings::MANAGE_CAPS, true );
 
-		do_action( 'itron/wp-gone-control/capabilities/set' );
+		do_action( 'itron/gone-control/capabilities/set' );
 	}
 }

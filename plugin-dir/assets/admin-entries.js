@@ -1,25 +1,25 @@
 (function ($) {
 	const config = window.wpGoneControlEntries || {};
-	const storageKeyPrefix = config.storageKeyPrefix || 'wp_gone_control_entries_per_page_';
+	const storageKeyPrefix = config.storageKeyPrefix || 'gone_control_entries_per_page_';
 	const userId = typeof config.userId === 'number' ? config.userId : 0;
 	const storageKey = `${storageKeyPrefix}${userId}`;
 
-	const $table = $('.wp-gone-control-admin table');
+	const $table = $('.gone-control-admin table');
 	if (!$table.length) {
 		return;
 	}
 
-	const $rows = $table.find('tbody tr.wp-gone-control-entry-row');
-	const $pagination = $('.wp-gone-control-pagination');
+	const $rows = $table.find('tbody tr.gone-control-entry-row');
+	const $pagination = $('.gone-control-pagination');
 	if (!$rows.length || !$pagination.length) {
 		return;
 	}
 
-	const $perPageInput = $pagination.find('.wp-gone-control-per-page');
-	const $prev = $pagination.find('.wp-gone-control-prev');
-	const $next = $pagination.find('.wp-gone-control-next');
-	const $pageInput = $pagination.find('.wp-gone-control-page-input');
-	const $total = $pagination.find('.wp-gone-control-page-total');
+	const $perPageInput = $pagination.find('.gone-control-per-page');
+	const $prev = $pagination.find('.gone-control-prev');
+	const $next = $pagination.find('.gone-control-next');
+	const $pageInput = $pagination.find('.gone-control-page-input');
+	const $total = $pagination.find('.gone-control-page-total');
 
 	let perPage = parseInt(window.localStorage.getItem(storageKey), 10);
 	if (!perPage || perPage < 1) {

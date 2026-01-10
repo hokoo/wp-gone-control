@@ -1,9 +1,9 @@
-=== WP Gone Control ===
+=== Gone Control ===
 Contributors: hokku
 Donate link: https://www.paypal.me/igortron
 Tags: contact form telegram,contact form 7,telegram
 Requires at least: 5.6
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.4
 Stable tag: 0.2.0
 License: GPLv2 or later

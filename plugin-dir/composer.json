@@ -1,5 +1,5 @@
 {
-	"name": "itron/wp-gone-control",
+	"name": "itron/gone-control",
 	"description": "WordPress plugin for returning 410 status for removed objects.",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0-or-later",

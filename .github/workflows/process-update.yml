@@ -29,16 +29,16 @@ jobs:
           find . -mindepth 1 -maxdepth 1 -not -name 'plugin-dir' -not -name '.git' -exec rm -rf {} +
 
       # Rename plugin directory to the plugin name
-      - run: mv plugin-dir wp-gone-control
+      - run: mv plugin-dir gone-control
 
       # Zip the plugin directory
       - name: Zip the plugin directory
-        run: zip -r wp-gone-control-wp-plugin.zip wp-gone-control
+        run: zip -r gone-control-wp-plugin.zip gone-control
 
       - name: Upload Release Artifact
         uses: AButler/upload-release-assets@v3.0
         with:
-          files: ./wp-gone-control-wp-plugin.zip
+          files: ./gone-control-wp-plugin.zip
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set target branch
@@ -51,7 +51,7 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           export TEMP_DIR=$(mktemp -d)
-          cp -r wp-gone-control/* "$TEMP_DIR/"
+          cp -r gone-control/* "$TEMP_DIR/"
 
           git fetch origin ${{ steps.branch.outputs.branch_name }} || true
           git worktree add --force dist-worktree origin/${{ steps.branch.outputs.branch_name }}
@@ -77,6 +77,6 @@ jobs:
         env:
           SVN_USERNAME: ${{ secrets.WPORG_USERNAME }}
           SVN_PASSWORD: ${{ secrets.WPORG_PASSWORD }}
-          BUILD_DIR: ./wp-gone-control
-          SLUG: wp-gone-control
+          BUILD_DIR: ./gone-control
+          SLUG: gone-control
           VERSION: ${{ steps.clean_version.outputs.value }}
