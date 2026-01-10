@@ -4,6 +4,8 @@ namespace iTRON\WPGoneControl\Controller;
 
 use iTRON\WPGoneControl\Database;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 class TemplateController {
 	private $database;
 
@@ -18,7 +20,7 @@ class TemplateController {
 
 		$path = '';
 		if ( isset( $_SERVER['REQUEST_URI'] ) ) {
-			$path = wp_parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH );
+			$path = wp_parse_url( sanitize_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ), PHP_URL_PATH );
 		}
 
 		$path = $this->database->normalize_path( $path );

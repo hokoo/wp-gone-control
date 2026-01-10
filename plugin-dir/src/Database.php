@@ -2,6 +2,8 @@
 
 namespace iTRON\WPGoneControl;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 class Database {
 	public function get_table_name() {
 		global $wpdb;
@@ -47,7 +49,6 @@ class Database {
 	public function store_url( $url, $object_type, $object_id ) {
 		global $wpdb;
 
-		$table_name = $this->get_table_name();
 		$path       = $this->normalize_path( $url );
 
 		if ( '/' === $path ) {
@@ -58,7 +59,7 @@ class Database {
 
 		$wpdb->query(
 			$wpdb->prepare(
-				"INSERT IGNORE INTO {$table_name} (object_type, object_id, url_path, url_hash, deleted_at)
+				"INSERT IGNORE INTO {$this->get_table_name()} (object_type, object_id, url_path, url_hash, deleted_at)
 				VALUES (%s, %d, %s, %s, %s)",
 				$object_type,
 				$object_id,
@@ -72,12 +73,11 @@ class Database {
 	public function url_exists( $path ): bool {
 		global $wpdb;
 
-		$table_name = $this->get_table_name();
-		$hash       = md5( $path );
+		$hash = md5( $path );
 
 		return (bool) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT id FROM {$table_name} WHERE url_hash = %s LIMIT 1",
+				"SELECT id FROM {$this->get_table_name()} WHERE url_hash = %s LIMIT 1",
 				$hash
 			)
 		);
@@ -86,12 +86,10 @@ class Database {
 	public function get_entries( int $limit = 100 ): array {
 		global $wpdb;
 
-		$table_name = $this->get_table_name();
-
 		return (array) $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT id, object_type, object_id, url_path, deleted_at
-				FROM {$table_name}
+				FROM {$this->get_table_name()}
 				ORDER BY deleted_at DESC
 				LIMIT %d",
 				$limit
@@ -103,19 +101,15 @@ class Database {
 	public function delete_entries( array $ids ): int {
 		global $wpdb;
 
-		$table_name = $this->get_table_name();
-		$ids        = array_values( array_filter( array_map( 'absint', $ids ) ) );
+		$ids = array_values( array_filter( array_map( 'absint', $ids ) ) );
 
 		if ( empty( $ids ) ) {
 			return 0;
 		}
 
-		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
-		$query        = $wpdb->prepare(
-			"DELETE FROM {$table_name} WHERE id IN ({$placeholders})",
-			$ids
-		);
-
-		return (int) $wpdb->query( $query );
+		return (int) $wpdb->query( $wpdb->prepare(
+			"DELETE FROM {$this->get_table_name()} WHERE id IN (%s)",
+			implode( ',', $ids )
+		) );
 	}
 }

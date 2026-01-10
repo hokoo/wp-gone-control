@@ -6,6 +6,8 @@ use Carbon_Fields\Carbon_Fields;
 use Carbon_Fields\Container;
 use Carbon_Fields\Field;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 class Settings {
 	public static string $optionPrefix;
 	const MANAGE_CAPS = 'gone_control_manage_options';
@@ -141,8 +143,9 @@ class Settings {
 
 		check_admin_referer( 'gone_control_delete_entries' );
 
+		//phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$ids = isset( $_POST['gone_control_ids'] ) ? (array) wp_unslash( $_POST['gone_control_ids'] ) : [];
-		$ids = array_map( 'absint', $ids );
+		$ids = array_map( 'absint', $ids ); // Sanitize IDs
 
 		$db = new Database();
 		$db->delete_entries( $ids );

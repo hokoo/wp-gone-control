@@ -5,6 +5,8 @@ namespace iTRON\WPGoneControl\Controller;
 use iTRON\WPGoneControl\Database;
 use iTRON\WPGoneControl\Settings;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 class Activation {
 	private $database;
 
