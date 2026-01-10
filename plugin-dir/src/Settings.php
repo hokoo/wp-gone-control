@@ -46,18 +46,57 @@ class Settings {
 		$post_type_options = self::getPostTypeOptions();
 		$taxonomy_options  = self::getTaxonomyOptions();
 		$role_options      = self::getRoleOptions();
+		$post_types_locked = self::isOverloaded( 'post_types' );
+		$taxonomies_locked = self::isOverloaded( 'taxonomies' );
+		$roles_locked      = self::isOverloaded( 'user_roles' );
+		$post_type_defaults = $post_types_locked
+			? self::normalizeSelection( self::getOverloaded( 'post_types' ), array_keys( $post_type_options ) )
+			: array_keys( $post_type_options );
+		$taxonomy_defaults = $taxonomies_locked
+			? self::normalizeSelection( self::getOverloaded( 'taxonomies' ), array_keys( $taxonomy_options ) )
+			: array_keys( $taxonomy_options );
+		$role_defaults = $roles_locked
+			? self::normalizeSelection( self::getOverloaded( 'user_roles' ), array_keys( $role_options ) )
+			: array_keys( $role_options );
+
+		if ( $post_types_locked ) {
+			$settings_page_fields[] = Field::make( 'html', 'gone_control_post_types_locked' )
+				->set_html( sprintf( '<p class="description">%s</p>', esc_html__( 'Post types are locked because the WP_GONE_CONTROL_POST_TYPES constant is defined.', 'gone-control' ) ) );
+		}
 
 		$settings_page_fields[] = Field::make( 'set', self::$optionPrefix . 'post_types', __( 'Post types', 'gone-control' ) )
 			->set_options( $post_type_options )
-			->set_default_value( array_keys( $post_type_options ) );
+			->set_default_value( $post_type_defaults );
+
+		if ( $post_types_locked ) {
+			$settings_page_fields[ array_key_last( $settings_page_fields ) ]->set_attribute( 'disabled', 'disabled' );
+		}
+
+		if ( $taxonomies_locked ) {
+			$settings_page_fields[] = Field::make( 'html', 'gone_control_taxonomies_locked' )
+				->set_html( sprintf( '<p class="description">%s</p>', esc_html__( 'Taxonomies are locked because the WP_GONE_CONTROL_TAXONOMIES constant is defined.', 'gone-control' ) ) );
+		}
 
 		$settings_page_fields[] = Field::make( 'set', self::$optionPrefix . 'taxonomies', __( 'Taxonomies', 'gone-control' ) )
 			->set_options( $taxonomy_options )
-			->set_default_value( array_keys( $taxonomy_options ) );
+			->set_default_value( $taxonomy_defaults );
+
+		if ( $taxonomies_locked ) {
+			$settings_page_fields[ array_key_last( $settings_page_fields ) ]->set_attribute( 'disabled', 'disabled' );
+		}
+
+		if ( $roles_locked ) {
+			$settings_page_fields[] = Field::make( 'html', 'gone_control_roles_locked' )
+				->set_html( sprintf( '<p class="description">%s</p>', esc_html__( 'User roles are locked because the WP_GONE_CONTROL_USER_ROLES constant is defined.', 'gone-control' ) ) );
+		}
 
 		$settings_page_fields[] = Field::make( 'set', self::$optionPrefix . 'user_roles', __( 'User roles', 'gone-control' ) )
 			->set_options( $role_options )
-			->set_default_value( array_keys( $role_options ) );
+			->set_default_value( $role_defaults );
+
+		if ( $roles_locked ) {
+			$settings_page_fields[ array_key_last( $settings_page_fields ) ]->set_attribute( 'disabled', 'disabled' );
+		}
 
 		Container::make( OPTIONS_MODE, __( 'Gone Control Settings', 'gone-control' ) )
 			->set_page_parent( 'gone-control' )
@@ -122,7 +161,7 @@ class Settings {
 
 	public static function getEnabledPostTypes(): array {
 		$options   = array_keys( self::getPostTypeOptions() );
-		$selected  = self::getOption( 'post_types' );
+		$selected  = self::isOverloaded( 'post_types' ) ? self::getOverloaded( 'post_types' ) : self::getOption( 'post_types' );
 		$processed = self::normalizeSelection( $selected, $options );
 
 		return $processed;
@@ -130,7 +169,7 @@ class Settings {
 
 	public static function getEnabledTaxonomies(): array {
 		$options   = array_keys( self::getTaxonomyOptions() );
-		$selected  = self::getOption( 'taxonomies' );
+		$selected  = self::isOverloaded( 'taxonomies' ) ? self::getOverloaded( 'taxonomies' ) : self::getOption( 'taxonomies' );
 		$processed = self::normalizeSelection( $selected, $options );
 
 		return $processed;
@@ -138,7 +177,7 @@ class Settings {
 
 	public static function getEnabledRoles(): array {
 		$options   = array_keys( self::getRoleOptions() );
-		$selected  = self::getOption( 'user_roles' );
+		$selected  = self::isOverloaded( 'user_roles' ) ? self::getOverloaded( 'user_roles' ) : self::getOption( 'user_roles' );
 		$processed = self::normalizeSelection( $selected, $options );
 
 		return $processed;
