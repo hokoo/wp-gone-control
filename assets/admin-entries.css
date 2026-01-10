@@ -1,0 +1,21 @@
+.gone-control-entry-actions {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-end;
+	gap: 16px;
+	flex-wrap: wrap;
+	margin-bottom: 16px;
+}
+
+.gone-control-pagination label {
+	vertical-align: bottom;
+}
+
+.gone-control-pagination .small-text {
+	vertical-align: bottom;
+}
+
+.gone-control-page-total {
+	display: inline-block;
+	margin: 0 4px;
+}
