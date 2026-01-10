@@ -27,16 +27,103 @@ class Settings {
 	}
 
 	public static function createOptions(): void {
-		$option_page = Container::make( OPTIONS_MODE, 'WP Gone Control' );
-		$settings    = [];
+		$entries_page = Container::make( OPTIONS_MODE, 'WP Gone Control' );
+		$settings     = [];
 
 		$settings[] = Field::make( 'html', 'gone_control_entries' )
 		                  ->set_html( self::renderEntriesHtml() );
 
-		$option_page->set_page_file( 'gone-control' )
-		            ->add_fields( $settings )
-		            ->set_icon( 'dashicons-drumstick' )
-		            ->where( 'current_user_capability', 'IN', [ self::MANAGE_CAPS, 'manage_options' ] );
+		$entries_page->set_page_file( 'gone-control' )
+		             ->add_fields( $settings )
+		             ->set_icon( 'dashicons-drumstick' )
+		             ->where( 'current_user_capability', 'IN', [ self::MANAGE_CAPS, 'manage_options' ] );
+
+		$settings_page_fields = [];
+
+		$settings_page_fields[] = Field::make( 'html', 'gone_control_settings_intro' )
+			->set_html( sprintf( '<p>%s</p>', esc_html__( 'Select the post types and taxonomies that should be processed by Gone Control.', 'gone-control' ) ) );
+
+		$post_type_options = self::getPostTypeOptions();
+		$taxonomy_options  = self::getTaxonomyOptions();
+
+		$settings_page_fields[] = Field::make( 'set', self::$optionPrefix . 'post_types', __( 'Post types', 'gone-control' ) )
+			->set_options( $post_type_options )
+			->set_default_value( array_keys( $post_type_options ) );
+
+		$settings_page_fields[] = Field::make( 'set', self::$optionPrefix . 'taxonomies', __( 'Taxonomies', 'gone-control' ) )
+			->set_options( $taxonomy_options )
+			->set_default_value( array_keys( $taxonomy_options ) );
+
+		Container::make( OPTIONS_MODE, __( 'Gone Control Settings', 'gone-control' ) )
+			->set_page_parent( 'gone-control' )
+			->set_page_file( 'gone-control-settings' )
+			->add_fields( $settings_page_fields )
+			->where( 'current_user_capability', 'IN', [ self::MANAGE_CAPS, 'manage_options' ] );
+	}
+
+	private static function getPostTypeOptions(): array {
+		$post_types = get_post_types( [ 'public' => true ], 'objects' );
+		$options    = [];
+
+		foreach ( $post_types as $post_type ) {
+			$options[ $post_type->name ] = $post_type->labels->name ?? $post_type->name;
+		}
+
+		ksort( $options );
+
+		return $options;
+	}
+
+	private static function getTaxonomyOptions(): array {
+		$taxonomies = get_taxonomies( [ 'public' => true ], 'objects' );
+		$options    = [];
+
+		foreach ( $taxonomies as $taxonomy ) {
+			$options[ $taxonomy->name ] = $taxonomy->labels->name ?? $taxonomy->name;
+		}
+
+		ksort( $options );
+
+		return $options;
+	}
+
+	private static function normalizeSelection( $selected, array $available ): array {
+		if ( null === $selected || '' === $selected ) {
+			return $available;
+		}
+
+		$selected = array_map( 'strval', (array) $selected );
+		$filtered = array_values( array_intersect( $available, $selected ) );
+
+		return $filtered;
+	}
+
+	public static function getEnabledPostTypes(): array {
+		$options   = array_keys( self::getPostTypeOptions() );
+		$selected  = self::getOption( 'post_types' );
+		$processed = self::normalizeSelection( $selected, $options );
+
+		return $processed;
+	}
+
+	public static function getEnabledTaxonomies(): array {
+		$options   = array_keys( self::getTaxonomyOptions() );
+		$selected  = self::getOption( 'taxonomies' );
+		$processed = self::normalizeSelection( $selected, $options );
+
+		return $processed;
+	}
+
+	public static function isPostTypeEnabled( string $post_type ): bool {
+		$enabled = self::getEnabledPostTypes();
+
+		return in_array( $post_type, $enabled, true );
+	}
+
+	public static function isTaxonomyEnabled( string $taxonomy ): bool {
+		$enabled = self::getEnabledTaxonomies();
+
+		return in_array( $taxonomy, $enabled, true );
 	}
 
 	private static function renderEntriesHtml(): string {

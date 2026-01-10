@@ -31,6 +31,10 @@ class MainController {
 			return;
 		}
 
+		if ( ! \iTRON\WPGoneControl\Settings::isPostTypeEnabled( $post->post_type ) ) {
+			return;
+		}
+
 		if ( ! $this->post_is_public( $post ) ) {
 			return;
 		}
@@ -44,6 +48,10 @@ class MainController {
 	public function handle_term_remove( $term, $taxonomy ) {
 		$term_obj = get_term( $term, $taxonomy );
 		if ( ! $term_obj || is_wp_error( $term_obj ) ) {
+			return;
+		}
+
+		if ( ! \iTRON\WPGoneControl\Settings::isTaxonomyEnabled( $taxonomy ) ) {
 			return;
 		}
 
