@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'itron/gone-control',
-        'pretty_version' => 'dev-b600a01178c4822ec31d436b114d9b497a898a97',
-        'version' => 'dev-b600a01178c4822ec31d436b114d9b497a898a97',
-        'reference' => 'b600a01178c4822ec31d436b114d9b497a898a97',
+        'pretty_version' => 'dev-f74035a9a8609b1013464d67721dde64d55ce4a7',
+        'version' => 'dev-f74035a9a8609b1013464d67721dde64d55ce4a7',
+        'reference' => 'f74035a9a8609b1013464d67721dde64d55ce4a7',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -20,9 +20,9 @@
             'dev_requirement' => false,
         ),
         'itron/gone-control' => array(
-            'pretty_version' => 'dev-b600a01178c4822ec31d436b114d9b497a898a97',
-            'version' => 'dev-b600a01178c4822ec31d436b114d9b497a898a97',
-            'reference' => 'b600a01178c4822ec31d436b114d9b497a898a97',
+            'pretty_version' => 'dev-f74035a9a8609b1013464d67721dde64d55ce4a7',
+            'version' => 'dev-f74035a9a8609b1013464d67721dde64d55ce4a7',
+            'reference' => 'f74035a9a8609b1013464d67721dde64d55ce4a7',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

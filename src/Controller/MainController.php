@@ -6,6 +6,8 @@ use WP_Post;
 use WP_User;
 use iTRON\WPGoneControl\Database;
 
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 class MainController {
 	private Database $database;
 	private TemplateController $template_controller;

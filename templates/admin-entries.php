@@ -2,6 +2,9 @@
 /**
  * @var array $args
  */
+
+if ( ! defined( 'ABSPATH' ) ) exit;
+
 $entries = $args['entries'] ?? [];
 $notice  = $args['notice'] ?? [];
 ?>
