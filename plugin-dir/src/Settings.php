@@ -255,20 +255,20 @@ class Settings {
 		wp_nonce_field( 'gone_control_save_settings' );
 		echo '<input type="hidden" name="action" value="gone_control_save_settings" />';
 
-		if ( $post_types_locked ) {
-			echo '<p class="description">' . esc_html__( 'Post types are locked because the WP_GONE_CONTROL_POST_TYPES constant is defined.', 'gone-control' ) . '</p>';
-		}
-		self::renderCheckboxGroup( 'post_types', __( 'Post types', 'gone-control' ), $post_type_options, $post_type_defaults, $post_types_locked );
+		$post_types_description = $post_types_locked
+			? __( 'Post types are locked because the WP_GONE_CONTROL_POST_TYPES constant is defined.', 'gone-control' )
+			: '';
+		self::renderCheckboxGroup( 'post_types', __( 'Post types', 'gone-control' ), $post_type_options, $post_type_defaults, $post_types_locked, $post_types_description );
 
-		if ( $taxonomies_locked ) {
-			echo '<p class="description">' . esc_html__( 'Taxonomies are locked because the WP_GONE_CONTROL_TAXONOMIES constant is defined.', 'gone-control' ) . '</p>';
-		}
-		self::renderCheckboxGroup( 'taxonomies', __( 'Taxonomies', 'gone-control' ), $taxonomy_options, $taxonomy_defaults, $taxonomies_locked );
+		$taxonomies_description = $taxonomies_locked
+			? __( 'Taxonomies are locked because the WP_GONE_CONTROL_TAXONOMIES constant is defined.', 'gone-control' )
+			: '';
+		self::renderCheckboxGroup( 'taxonomies', __( 'Taxonomies', 'gone-control' ), $taxonomy_options, $taxonomy_defaults, $taxonomies_locked, $taxonomies_description );
 
-		if ( $roles_locked ) {
-			echo '<p class="description">' . esc_html__( 'User roles are locked because the WP_GONE_CONTROL_USER_ROLES constant is defined.', 'gone-control' ) . '</p>';
-		}
-		self::renderCheckboxGroup( 'user_roles', __( 'User roles', 'gone-control' ), $role_options, $role_defaults, $roles_locked );
+		$roles_description = $roles_locked
+			? __( 'User roles are locked because the WP_GONE_CONTROL_USER_ROLES constant is defined.', 'gone-control' )
+			: '';
+		self::renderCheckboxGroup( 'user_roles', __( 'User roles', 'gone-control' ), $role_options, $role_defaults, $roles_locked, $roles_description );
 
 		if ( ! $post_types_locked || ! $taxonomies_locked || ! $roles_locked ) {
 			submit_button( __( 'Save Settings', 'gone-control' ) );
@@ -278,10 +278,13 @@ class Settings {
 		echo '</div>';
 	}
 
-	private static function renderCheckboxGroup( string $slug, string $label, array $options, array $selected, bool $disabled ): void {
+	private static function renderCheckboxGroup( string $slug, string $label, array $options, array $selected, bool $disabled, string $description = '' ): void {
 		echo '<fieldset>';
 		echo '<legend class="screen-reader-text">' . esc_html( $label ) . '</legend>';
 		echo '<h2>' . esc_html( $label ) . '</h2>';
+		if ( '' !== $description ) {
+			echo '<p class="description">' . esc_html( $description ) . '</p>';
+		}
 		echo '<div class="gone-control-settings-group">';
 
 		foreach ( $options as $value => $option_label ) {
