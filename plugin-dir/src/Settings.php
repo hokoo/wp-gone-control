@@ -69,7 +69,9 @@ class Settings {
 			->set_default_value( $post_type_defaults );
 
 		if ( $post_types_locked ) {
-			$settings_page_fields[ array_key_last( $settings_page_fields ) ]->set_attribute( 'disabled', 'disabled' );
+			$settings_page_fields[ array_key_last( $settings_page_fields ) ]
+				->set_attribute( 'disabled', 'disabled' )
+				->set_value( $post_type_defaults );
 		}
 
 		if ( $taxonomies_locked ) {
@@ -82,7 +84,9 @@ class Settings {
 			->set_default_value( $taxonomy_defaults );
 
 		if ( $taxonomies_locked ) {
-			$settings_page_fields[ array_key_last( $settings_page_fields ) ]->set_attribute( 'disabled', 'disabled' );
+			$settings_page_fields[ array_key_last( $settings_page_fields ) ]
+				->set_attribute( 'disabled', 'disabled' )
+				->set_value( $taxonomy_defaults );
 		}
 
 		if ( $roles_locked ) {
@@ -95,7 +99,9 @@ class Settings {
 			->set_default_value( $role_defaults );
 
 		if ( $roles_locked ) {
-			$settings_page_fields[ array_key_last( $settings_page_fields ) ]->set_attribute( 'disabled', 'disabled' );
+			$settings_page_fields[ array_key_last( $settings_page_fields ) ]
+				->set_attribute( 'disabled', 'disabled' )
+				->set_value( $role_defaults );
 		}
 
 		Container::make( OPTIONS_MODE, __( 'Gone Control Settings', 'gone-control' ) )
