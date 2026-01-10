@@ -9,7 +9,7 @@ Stable tag: 0.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-A WordPress plugin that ensures proper HTTP 410 (Gone) status codes are returned for deleted posts, pages, and custom post types, improving SEO and user experience.
+A WordPress plugin that ensures HTTP 410 (Gone) status code are returned for deleted posts, pages, and CPT, improving SEO and user experience.
 
 == Description ==
 
