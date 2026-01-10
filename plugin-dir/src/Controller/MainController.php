@@ -82,6 +82,10 @@ class MainController {
 			return;
 		}
 
+		if ( ! \iTRON\WPGoneControl\Settings::isUserEnabled( (array) $user->roles ) ) {
+			return;
+		}
+
 		if ( ! $this->user_is_public( $user ) ) {
 			return;
 		}

@@ -45,6 +45,7 @@ class Settings {
 
 		$post_type_options = self::getPostTypeOptions();
 		$taxonomy_options  = self::getTaxonomyOptions();
+		$role_options      = self::getRoleOptions();
 
 		$settings_page_fields[] = Field::make( 'set', self::$optionPrefix . 'post_types', __( 'Post types', 'gone-control' ) )
 			->set_options( $post_type_options )
@@ -53,6 +54,10 @@ class Settings {
 		$settings_page_fields[] = Field::make( 'set', self::$optionPrefix . 'taxonomies', __( 'Taxonomies', 'gone-control' ) )
 			->set_options( $taxonomy_options )
 			->set_default_value( array_keys( $taxonomy_options ) );
+
+		$settings_page_fields[] = Field::make( 'set', self::$optionPrefix . 'user_roles', __( 'User roles', 'gone-control' ) )
+			->set_options( $role_options )
+			->set_default_value( array_keys( $role_options ) );
 
 		Container::make( OPTIONS_MODE, __( 'Gone Control Settings', 'gone-control' ) )
 			->set_page_parent( 'gone-control' )
@@ -87,6 +92,23 @@ class Settings {
 		return $options;
 	}
 
+	private static function getRoleOptions(): array {
+		$roles   = wp_roles();
+		$options = [];
+
+		if ( ! $roles ) {
+			return $options;
+		}
+
+		foreach ( $roles->roles as $role_slug => $role_data ) {
+			$options[ $role_slug ] = $role_data['name'] ?? $role_slug;
+		}
+
+		ksort( $options );
+
+		return $options;
+	}
+
 	private static function normalizeSelection( $selected, array $available ): array {
 		if ( null === $selected || '' === $selected ) {
 			return $available;
@@ -114,6 +136,14 @@ class Settings {
 		return $processed;
 	}
 
+	public static function getEnabledRoles(): array {
+		$options   = array_keys( self::getRoleOptions() );
+		$selected  = self::getOption( 'user_roles' );
+		$processed = self::normalizeSelection( $selected, $options );
+
+		return $processed;
+	}
+
 	public static function isPostTypeEnabled( string $post_type ): bool {
 		$enabled = self::getEnabledPostTypes();
 
@@ -124,6 +154,22 @@ class Settings {
 		$enabled = self::getEnabledTaxonomies();
 
 		return in_array( $taxonomy, $enabled, true );
+	}
+
+	public static function isUserEnabled( array $roles ): bool {
+		$enabled_roles = self::getEnabledRoles();
+
+		if ( [] === $roles ) {
+			return true;
+		}
+
+		foreach ( $roles as $role ) {
+			if ( in_array( $role, $enabled_roles, true ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private static function renderEntriesHtml(): string {
