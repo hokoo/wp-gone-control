@@ -96,6 +96,8 @@ class Settings {
 		$roles   = wp_roles();
 		$options = [];
 
+		$options['none'] = __( 'No role', 'gone-control' );
+
 		if ( ! $roles ) {
 			return $options;
 		}
@@ -160,7 +162,7 @@ class Settings {
 		$enabled_roles = self::getEnabledRoles();
 
 		if ( [] === $roles ) {
-			return true;
+			return in_array( 'none', $enabled_roles, true );
 		}
 
 		foreach ( $roles as $role ) {
