@@ -32,6 +32,15 @@ class Settings {
 
 		add_submenu_page(
 			'gone-control',
+			__( 'WP Gone Control', 'gone-control' ),
+			__( '410 list', 'gone-control' ),
+			$capability,
+			'gone-control',
+			[ self::class, 'renderEntriesPage' ]
+		);
+
+		add_submenu_page(
+			'gone-control',
 			__( 'Gone Control Settings', 'gone-control' ),
 			__( 'Settings', 'gone-control' ),
 			$capability,
