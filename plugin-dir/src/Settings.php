@@ -2,10 +2,6 @@
 
 namespace iTRON\WPGoneControl;
 
-use Carbon_Fields\Carbon_Fields;
-use Carbon_Fields\Container;
-use Carbon_Fields\Field;
-
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 class Settings {
@@ -13,102 +9,43 @@ class Settings {
 	const MANAGE_CAPS = 'gone_control_manage_options';
 
 	public static function init(): void {
-		add_action( 'carbon_fields_register_fields', [ self::class, 'createOptions' ] );
-		add_action( 'after_setup_theme', [ self::class, 'loadCarbon' ] );
+		add_action( 'admin_menu', [ self::class, 'registerAdminPages' ] );
 		add_action( 'admin_post_gone_control_add_entry', [ self::class, 'handleAddEntry' ] );
 		add_action( 'admin_post_gone_control_delete_entries', [ self::class, 'handleDeleteEntries' ] );
+		add_action( 'admin_post_gone_control_save_settings', [ self::class, 'handleSaveSettings' ] );
 		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueueAdminAssets' ] );
 
 		self::$optionPrefix = PLUGIN_SLUG . '_';
 	}
 
-	public static function loadCarbon(): void {
-		Carbon_Fields::boot();
+	public static function registerAdminPages(): void {
+		$capability = self::getManageCapability();
+
+		add_menu_page(
+			__( 'WP Gone Control', 'gone-control' ),
+			__( 'WP Gone Control', 'gone-control' ),
+			$capability,
+			'gone-control',
+			[ self::class, 'renderEntriesPage' ],
+			'dashicons-drumstick'
+		);
+
+		add_submenu_page(
+			'gone-control',
+			__( 'Gone Control Settings', 'gone-control' ),
+			__( 'Settings', 'gone-control' ),
+			$capability,
+			'gone-control-settings',
+			[ self::class, 'renderSettingsPage' ]
+		);
 	}
 
-	public static function createOptions(): void {
-		$entries_page = Container::make( OPTIONS_MODE, 'WP Gone Control' );
-		$settings     = [];
-
-		$settings[] = Field::make( 'html', 'gone_control_entries' )
-		                  ->set_html( self::renderEntriesHtml() );
-
-		$entries_page->set_page_file( 'gone-control' )
-		             ->add_fields( $settings )
-		             ->set_icon( 'dashicons-drumstick' )
-		             ->where( 'current_user_capability', 'IN', [ self::MANAGE_CAPS, 'manage_options' ] );
-
-		$settings_page_fields = [];
-
-		$settings_page_fields[] = Field::make( 'html', 'gone_control_settings_intro' )
-			->set_html( sprintf( '<p>%s</p>', esc_html__( 'Select the post types and taxonomies that should be processed by Gone Control.', 'gone-control' ) ) );
-
-		$post_type_options = self::getPostTypeOptions();
-		$taxonomy_options  = self::getTaxonomyOptions();
-		$role_options      = self::getRoleOptions();
-		$post_types_locked = self::isOverloaded( 'post_types' );
-		$taxonomies_locked = self::isOverloaded( 'taxonomies' );
-		$roles_locked      = self::isOverloaded( 'user_roles' );
-		$post_type_defaults = $post_types_locked
-			? self::normalizeSelection( self::getOverloaded( 'post_types' ), array_keys( $post_type_options ) )
-			: array_keys( $post_type_options );
-		$taxonomy_defaults = $taxonomies_locked
-			? self::normalizeSelection( self::getOverloaded( 'taxonomies' ), array_keys( $taxonomy_options ) )
-			: array_keys( $taxonomy_options );
-		$role_defaults = $roles_locked
-			? self::normalizeSelection( self::getOverloaded( 'user_roles' ), array_keys( $role_options ) )
-			: array_keys( $role_options );
-
-		if ( $post_types_locked ) {
-			$settings_page_fields[] = Field::make( 'html', 'gone_control_post_types_locked' )
-				->set_html( sprintf( '<p class="description">%s</p>', esc_html__( 'Post types are locked because the WP_GONE_CONTROL_POST_TYPES constant is defined.', 'gone-control' ) ) );
+	private static function getManageCapability(): string {
+		if ( current_user_can( self::MANAGE_CAPS ) ) {
+			return self::MANAGE_CAPS;
 		}
 
-		$settings_page_fields[] = Field::make( 'set', self::$optionPrefix . 'post_types', __( 'Post types', 'gone-control' ) )
-			->set_options( $post_type_options )
-			->set_default_value( $post_type_defaults );
-
-		if ( $post_types_locked ) {
-			$settings_page_fields[ array_key_last( $settings_page_fields ) ]
-				->set_attribute( 'disabled', 'disabled' )
-				->set_value( $post_type_defaults );
-		}
-
-		if ( $taxonomies_locked ) {
-			$settings_page_fields[] = Field::make( 'html', 'gone_control_taxonomies_locked' )
-				->set_html( sprintf( '<p class="description">%s</p>', esc_html__( 'Taxonomies are locked because the WP_GONE_CONTROL_TAXONOMIES constant is defined.', 'gone-control' ) ) );
-		}
-
-		$settings_page_fields[] = Field::make( 'set', self::$optionPrefix . 'taxonomies', __( 'Taxonomies', 'gone-control' ) )
-			->set_options( $taxonomy_options )
-			->set_default_value( $taxonomy_defaults );
-
-		if ( $taxonomies_locked ) {
-			$settings_page_fields[ array_key_last( $settings_page_fields ) ]
-				->set_attribute( 'disabled', 'disabled' )
-				->set_value( $taxonomy_defaults );
-		}
-
-		if ( $roles_locked ) {
-			$settings_page_fields[] = Field::make( 'html', 'gone_control_roles_locked' )
-				->set_html( sprintf( '<p class="description">%s</p>', esc_html__( 'User roles are locked because the WP_GONE_CONTROL_USER_ROLES constant is defined.', 'gone-control' ) ) );
-		}
-
-		$settings_page_fields[] = Field::make( 'set', self::$optionPrefix . 'user_roles', __( 'User roles', 'gone-control' ) )
-			->set_options( $role_options )
-			->set_default_value( $role_defaults );
-
-		if ( $roles_locked ) {
-			$settings_page_fields[ array_key_last( $settings_page_fields ) ]
-				->set_attribute( 'disabled', 'disabled' )
-				->set_value( $role_defaults );
-		}
-
-		Container::make( OPTIONS_MODE, __( 'Gone Control Settings', 'gone-control' ) )
-			->set_page_parent( 'gone-control' )
-			->set_page_file( 'gone-control-settings' )
-			->add_fields( $settings_page_fields )
-			->where( 'current_user_capability', 'IN', [ self::MANAGE_CAPS, 'manage_options' ] );
+		return 'manage_options';
 	}
 
 	private static function getPostTypeOptions(): array {
@@ -155,7 +92,7 @@ class Settings {
 	}
 
 	private static function normalizeSelection( $selected, array $available ): array {
-		if ( null === $selected || '' === $selected ) {
+		if ( null === $selected || '' === $selected || false === $selected ) {
 			return $available;
 		}
 
@@ -267,6 +204,137 @@ class Settings {
 		);
 	}
 
+	public static function renderEntriesPage(): void {
+		if ( ! current_user_can( self::MANAGE_CAPS ) && ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Insufficient permissions.', 'gone-control' ) );
+		}
+
+		echo '<div class="wrap">';
+		echo '<h1>' . esc_html__( 'WP Gone Control', 'gone-control' ) . '</h1>';
+		echo self::renderEntriesHtml();
+		echo '</div>';
+	}
+
+	public static function renderSettingsPage(): void {
+		if ( ! current_user_can( self::MANAGE_CAPS ) && ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Insufficient permissions.', 'gone-control' ) );
+		}
+
+		$status = isset( $_GET['gone_control_settings_status'] ) ? sanitize_key( wp_unslash( $_GET['gone_control_settings_status'] ) ) : '';
+		$notice = self::getSettingsNoticeData( $status );
+
+		$post_type_options = self::getPostTypeOptions();
+		$taxonomy_options  = self::getTaxonomyOptions();
+		$role_options      = self::getRoleOptions();
+		$post_types_locked = self::isOverloaded( 'post_types' );
+		$taxonomies_locked = self::isOverloaded( 'taxonomies' );
+		$roles_locked      = self::isOverloaded( 'user_roles' );
+		$post_type_defaults = $post_types_locked
+			? self::normalizeSelection( self::getOverloaded( 'post_types' ), array_keys( $post_type_options ) )
+			: self::getEnabledPostTypes();
+		$taxonomy_defaults = $taxonomies_locked
+			? self::normalizeSelection( self::getOverloaded( 'taxonomies' ), array_keys( $taxonomy_options ) )
+			: self::getEnabledTaxonomies();
+		$role_defaults = $roles_locked
+			? self::normalizeSelection( self::getOverloaded( 'user_roles' ), array_keys( $role_options ) )
+			: self::getEnabledRoles();
+
+		echo '<div class="wrap">';
+		echo '<h1>' . esc_html__( 'Gone Control Settings', 'gone-control' ) . '</h1>';
+
+		if ( $notice ) {
+			printf(
+				'<div class="notice %s"><p>%s</p></div>',
+				esc_attr( $notice['class'] ),
+				esc_html( $notice['message'] )
+			);
+		}
+
+		echo '<p>' . esc_html__( 'Select the post types and taxonomies that should be processed by Gone Control.', 'gone-control' ) . '</p>';
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+		wp_nonce_field( 'gone_control_save_settings' );
+		echo '<input type="hidden" name="action" value="gone_control_save_settings" />';
+
+		if ( $post_types_locked ) {
+			echo '<p class="description">' . esc_html__( 'Post types are locked because the WP_GONE_CONTROL_POST_TYPES constant is defined.', 'gone-control' ) . '</p>';
+		}
+		self::renderCheckboxGroup( 'post_types', __( 'Post types', 'gone-control' ), $post_type_options, $post_type_defaults, $post_types_locked );
+
+		if ( $taxonomies_locked ) {
+			echo '<p class="description">' . esc_html__( 'Taxonomies are locked because the WP_GONE_CONTROL_TAXONOMIES constant is defined.', 'gone-control' ) . '</p>';
+		}
+		self::renderCheckboxGroup( 'taxonomies', __( 'Taxonomies', 'gone-control' ), $taxonomy_options, $taxonomy_defaults, $taxonomies_locked );
+
+		if ( $roles_locked ) {
+			echo '<p class="description">' . esc_html__( 'User roles are locked because the WP_GONE_CONTROL_USER_ROLES constant is defined.', 'gone-control' ) . '</p>';
+		}
+		self::renderCheckboxGroup( 'user_roles', __( 'User roles', 'gone-control' ), $role_options, $role_defaults, $roles_locked );
+
+		if ( ! $post_types_locked || ! $taxonomies_locked || ! $roles_locked ) {
+			submit_button( __( 'Save Settings', 'gone-control' ) );
+		}
+
+		echo '</form>';
+		echo '</div>';
+	}
+
+	private static function renderCheckboxGroup( string $slug, string $label, array $options, array $selected, bool $disabled ): void {
+		echo '<fieldset>';
+		echo '<legend class="screen-reader-text">' . esc_html( $label ) . '</legend>';
+		echo '<h2>' . esc_html( $label ) . '</h2>';
+		echo '<div class="gone-control-settings-group">';
+
+		foreach ( $options as $value => $option_label ) {
+			$checked = in_array( $value, $selected, true ) ? 'checked' : '';
+			$disabled_attr = $disabled ? 'disabled' : '';
+			printf(
+				'<label style="display:block;margin:4px 0;"><input type="checkbox" name="%s[]" value="%s" %s %s /> %s</label>',
+				esc_attr( $slug ),
+				esc_attr( $value ),
+				$checked,
+				$disabled_attr,
+				esc_html( $option_label )
+			);
+		}
+
+		echo '</div>';
+		echo '</fieldset>';
+	}
+
+	public static function handleSaveSettings(): void {
+		if ( ! current_user_can( self::MANAGE_CAPS ) && ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Insufficient permissions.', 'gone-control' ) );
+		}
+
+		check_admin_referer( 'gone_control_save_settings' );
+
+		$post_type_options = array_keys( self::getPostTypeOptions() );
+		$taxonomy_options  = array_keys( self::getTaxonomyOptions() );
+		$role_options      = array_keys( self::getRoleOptions() );
+
+		if ( ! self::isOverloaded( 'post_types' ) ) {
+			$post_types = isset( $_POST['post_types'] ) ? (array) wp_unslash( $_POST['post_types'] ) : [];
+			$post_types = self::normalizeSelection( $post_types, $post_type_options );
+			update_option( self::$optionPrefix . 'post_types', $post_types );
+		}
+
+		if ( ! self::isOverloaded( 'taxonomies' ) ) {
+			$taxonomies = isset( $_POST['taxonomies'] ) ? (array) wp_unslash( $_POST['taxonomies'] ) : [];
+			$taxonomies = self::normalizeSelection( $taxonomies, $taxonomy_options );
+			update_option( self::$optionPrefix . 'taxonomies', $taxonomies );
+		}
+
+		if ( ! self::isOverloaded( 'user_roles' ) ) {
+			$roles = isset( $_POST['user_roles'] ) ? (array) wp_unslash( $_POST['user_roles'] ) : [];
+			$roles = self::normalizeSelection( $roles, $role_options );
+			update_option( self::$optionPrefix . 'user_roles', $roles );
+		}
+
+		$redirect = add_query_arg( 'gone_control_settings_status', 'saved', admin_url( 'admin.php?page=gone-control-settings' ) );
+		wp_safe_redirect( $redirect );
+		exit;
+	}
+
 	private static function getNoticeData( string $status ): array {
 		if ( '' === $status ) {
 			return [];
@@ -291,6 +359,17 @@ class Settings {
 		return [
 			'message' => $message,
 			'class'   => $class,
+		];
+	}
+
+	private static function getSettingsNoticeData( string $status ): array {
+		if ( 'saved' !== $status ) {
+			return [];
+		}
+
+		return [
+			'message' => __( 'Settings updated.', 'gone-control' ),
+			'class'   => 'notice-success',
 		];
 	}
 
@@ -361,16 +440,9 @@ class Settings {
 			return self::getOverloaded( $optionSlug );
 		}
 
-		// Carbon Fields does not have a built-in caching mechanism, lol.
-		$cache = wp_cache_get( $optionSlug, PLUGIN_SLUG );
-		if ( false !== $cache ) {
-			return $cache;
-		}
+		$option_name = self::$optionPrefix . $optionSlug;
 
-		$value = carbon_get_theme_option( self::$optionPrefix . $optionSlug );
-		wp_cache_set( $optionSlug, $value, PLUGIN_SLUG );
-
-		return $value;
+		return get_option( $option_name );
 	}
 
 	public static function getInterval(): int {
