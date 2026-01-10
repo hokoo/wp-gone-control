@@ -96,17 +96,15 @@ class Settings {
 		$roles   = wp_roles();
 		$options = [];
 
+		if ( $roles ) {
+			foreach ( $roles->roles as $role_slug => $role_data ) {
+				$options[ $role_slug ] = $role_data['name'] ?? $role_slug;
+			}
+
+			ksort( $options );
+		}
+
 		$options['none'] = __( 'No role', 'gone-control' );
-
-		if ( ! $roles ) {
-			return $options;
-		}
-
-		foreach ( $roles->roles as $role_slug => $role_data ) {
-			$options[ $role_slug ] = $role_data['name'] ?? $role_slug;
-		}
-
-		ksort( $options );
 
 		return $options;
 	}
