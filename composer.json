@@ -7,8 +7,5 @@
 		"psr-4": {
 			"iTRON\\WPGoneControl\\": "src/"
 		}
-	},
-	"require": {
-		"htmlburger/carbon-fields": "^3"
 	}
 }

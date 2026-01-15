@@ -7,5 +7,4 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'iTRON\\WPGoneControl\\' => array($baseDir . '/src'),
-    'Carbon_Fields\\' => array($vendorDir . '/htmlburger/carbon-fields/core'),
 );

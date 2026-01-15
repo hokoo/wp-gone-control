@@ -4,16 +4,12 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitbe3e36090456621a689444c3dc48467e
+class ComposerStaticInit3853fa65a2185fceec2f4843729719a5
 {
     public static $prefixLengthsPsr4 = array (
         'i' =>
         array (
             'iTRON\\WPGoneControl\\' => 20,
-        ),
-        'C' =>
-        array (
-            'Carbon_Fields\\' => 14,
         ),
     );
 
@@ -21,10 +17,6 @@ class ComposerStaticInitbe3e36090456621a689444c3dc48467e
         'iTRON\\WPGoneControl\\' =>
         array (
             0 => __DIR__ . '/../..' . '/src',
-        ),
-        'Carbon_Fields\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/htmlburger/carbon-fields/core',
         ),
     );
 
@@ -35,9 +27,9 @@ class ComposerStaticInitbe3e36090456621a689444c3dc48467e
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitbe3e36090456621a689444c3dc48467e::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitbe3e36090456621a689444c3dc48467e::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitbe3e36090456621a689444c3dc48467e::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit3853fa65a2185fceec2f4843729719a5::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit3853fa65a2185fceec2f4843729719a5::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit3853fa65a2185fceec2f4843729719a5::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -3,7 +3,7 @@
  * Plugin Name: Gone Control
  * Plugin URI: https://github.com/hokoo/wp-410
  * Description: Stores URLs of removed public objects and serves HTTP 410 for them.
- * Version: 0.2.2
+ * Version: 0.3
  * Author: Igor Tron (itron)
  * Author URI: https://github.com/hokoo
  * License: GPL-2.0-or-later
@@ -14,11 +14,12 @@
 namespace iTRON\WPGoneControl;
 
 use iTRON\WPGoneControl\Controller\Activation;
+use iTRON\WPGoneControl\Controller\ImportController;
 use iTRON\WPGoneControl\Controller\MainController;
 use iTRON\WPGoneControl\Controller\TemplateController;
 
 const PLUGIN_SLUG = 'gone-control';
-const VERSION     = '0.2.2';
+const VERSION     = '0.3';
 
 const PLUGIN_MAIN_FILE_PATH = __FILE__;
 define( __NAMESPACE__ . '\PLUGIN_NAME', plugin_basename( __FILE__ ) );
@@ -37,10 +38,12 @@ if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 $gc_db      = new Database();
 $gc_main    = new MainController( $gc_db, new TemplateController( $gc_db ) );
 $gc_activation = new Activation( $gc_db );
+$gc_import = new ImportController( $gc_db );
 
 register_activation_hook( __FILE__, [ $gc_activation, 'processActivationHook' ] );
 
 $gc_activation::init();
 $gc_main->register();
 
-( new Settings() )::init();
+Settings::setImportController( $gc_import );
+Settings::init();
