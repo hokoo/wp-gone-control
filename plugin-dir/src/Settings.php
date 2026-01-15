@@ -2,20 +2,30 @@
 
 namespace iTRON\WPGoneControl;
 
+use iTRON\WPGoneControl\Controller\ImportController;
+
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 class Settings {
 	public static string $optionPrefix;
 	const MANAGE_CAPS = 'gone_control_manage_options';
+	private static ?ImportController $importController = null;
 
 	public static function init(): void {
+		self::getImportController();
+
 		add_action( 'admin_menu', [ self::class, 'registerAdminPages' ] );
 		add_action( 'admin_post_gone_control_add_entry', [ self::class, 'handleAddEntry' ] );
 		add_action( 'admin_post_gone_control_delete_entries', [ self::class, 'handleDeleteEntries' ] );
 		add_action( 'admin_post_gone_control_save_settings', [ self::class, 'handleSaveSettings' ] );
+		add_action( 'admin_post_gone_control_import_entries', [ self::getImportController(), 'handleImportEntries' ] );
 		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueueAdminAssets' ] );
 
 		self::$optionPrefix = PLUGIN_SLUG . '_';
+	}
+
+	public static function setImportController( ImportController $controller ): void {
+		self::$importController = $controller;
 	}
 
 	public static function registerAdminPages(): void {
@@ -47,6 +57,23 @@ class Settings {
 			'gone-control-settings',
 			[ self::class, 'renderSettingsPage' ]
 		);
+
+		add_submenu_page(
+			'gone-control',
+			__( 'Import Gone URLs', 'gone-control' ),
+			__( 'Import', 'gone-control' ),
+			$capability,
+			'gone-control-import',
+			[ self::getImportController(), 'renderPage' ]
+		);
+	}
+
+	private static function getImportController(): ImportController {
+		if ( null === self::$importController ) {
+			self::$importController = new ImportController( new Database() );
+		}
+
+		return self::$importController;
 	}
 
 	private static function getManageCapability(): string {

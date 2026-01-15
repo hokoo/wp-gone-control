@@ -14,6 +14,7 @@
 namespace iTRON\WPGoneControl;
 
 use iTRON\WPGoneControl\Controller\Activation;
+use iTRON\WPGoneControl\Controller\ImportController;
 use iTRON\WPGoneControl\Controller\MainController;
 use iTRON\WPGoneControl\Controller\TemplateController;
 
@@ -37,10 +38,12 @@ if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 $gc_db      = new Database();
 $gc_main    = new MainController( $gc_db, new TemplateController( $gc_db ) );
 $gc_activation = new Activation( $gc_db );
+$gc_import = new ImportController( $gc_db );
 
 register_activation_hook( __FILE__, [ $gc_activation, 'processActivationHook' ] );
 
 $gc_activation::init();
 $gc_main->register();
 
-( new Settings() )::init();
+Settings::setImportController( $gc_import );
+Settings::init();
