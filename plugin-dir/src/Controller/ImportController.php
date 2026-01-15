@@ -5,6 +5,8 @@ namespace iTRON\WPGoneControl\Controller;
 use iTRON\WPGoneControl\Database;
 use iTRON\WPGoneControl\Settings;
 
+use const iTRON\WPGoneControl\PLUGIN_DIR;
+
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 class ImportController {
