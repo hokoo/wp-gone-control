@@ -2,21 +2,30 @@
 
 namespace iTRON\WPGoneControl;
 
+use iTRON\WPGoneControl\Controller\ImportController;
+
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 class Settings {
 	public static string $optionPrefix;
 	const MANAGE_CAPS = 'gone_control_manage_options';
+	private static ?ImportController $importController = null;
 
 	public static function init(): void {
+		self::getImportController();
+
 		add_action( 'admin_menu', [ self::class, 'registerAdminPages' ] );
 		add_action( 'admin_post_gone_control_add_entry', [ self::class, 'handleAddEntry' ] );
 		add_action( 'admin_post_gone_control_delete_entries', [ self::class, 'handleDeleteEntries' ] );
 		add_action( 'admin_post_gone_control_save_settings', [ self::class, 'handleSaveSettings' ] );
-		add_action( 'admin_post_gone_control_import_entries', [ self::class, 'handleImportEntries' ] );
+		add_action( 'admin_post_gone_control_import_entries', [ self::getImportController(), 'handleImportEntries' ] );
 		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueueAdminAssets' ] );
 
 		self::$optionPrefix = PLUGIN_SLUG . '_';
+	}
+
+	public static function setImportController( ImportController $controller ): void {
+		self::$importController = $controller;
 	}
 
 	public static function registerAdminPages(): void {
@@ -55,8 +64,16 @@ class Settings {
 			__( 'Import', 'gone-control' ),
 			$capability,
 			'gone-control-import',
-			[ self::class, 'renderImportPage' ]
+			[ self::getImportController(), 'renderPage' ]
 		);
+	}
+
+	private static function getImportController(): ImportController {
+		if ( null === self::$importController ) {
+			self::$importController = new ImportController( new Database() );
+		}
+
+		return self::$importController;
 	}
 
 	private static function getManageCapability(): string {
@@ -297,38 +314,6 @@ class Settings {
 		echo '</div>';
 	}
 
-	public static function renderImportPage(): void {
-		if ( ! current_user_can( self::MANAGE_CAPS ) && ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Insufficient permissions.', 'gone-control' ) );
-		}
-
-		$status = isset( $_GET['gone_control_import_status'] ) ? sanitize_key( wp_unslash( $_GET['gone_control_import_status'] ) ) : '';
-		$added  = isset( $_GET['gone_control_import_added'] ) ? absint( wp_unslash( $_GET['gone_control_import_added'] ) ) : 0;
-		$skipped = isset( $_GET['gone_control_import_skipped'] ) ? absint( wp_unslash( $_GET['gone_control_import_skipped'] ) ) : 0;
-		$notice = self::getImportNoticeData( $status, $added, $skipped );
-
-		echo '<div class="wrap">';
-		echo '<h1>' . esc_html__( 'Import Gone URLs', 'gone-control' ) . '</h1>';
-
-		if ( $notice ) {
-			printf(
-				'<div class="notice %s"><p>%s</p></div>',
-				esc_attr( $notice['class'] ),
-				esc_html( $notice['message'] )
-			);
-		}
-
-		$template_path = PLUGIN_DIR . 'templates/admin-import.php';
-		load_template(
-			$template_path,
-			false,
-			[
-				'action' => 'gone_control_import_entries',
-			]
-		);
-		echo '</div>';
-	}
-
 	private static function renderCheckboxGroup( string $slug, string $label, array $options, array $selected, bool $disabled, string $description = '' ): void {
 		echo '<fieldset>';
 		echo '<legend class="screen-reader-text">' . esc_html( $label ) . '</legend>';
@@ -427,36 +412,6 @@ class Settings {
 		];
 	}
 
-	private static function getImportNoticeData( string $status, int $added, int $skipped ): array {
-		if ( '' === $status ) {
-			return [];
-		}
-
-		$message = '';
-		$class   = 'notice-success';
-
-		if ( 'imported' === $status ) {
-			$message = sprintf(
-				/* translators: 1: number of URLs imported, 2: number of URLs skipped */
-				__( 'Import complete. Added %1$d URLs, skipped %2$d.', 'gone-control' ),
-				$added,
-				$skipped
-			);
-		} elseif ( 'error' === $status ) {
-			$message = __( 'Unable to import URLs.', 'gone-control' );
-			$class   = 'notice-error';
-		}
-
-		if ( '' === $message ) {
-			return [];
-		}
-
-		return [
-			'message' => $message,
-			'class'   => $class,
-		];
-	}
-
 	public static function handleAddEntry(): void {
 		if ( ! current_user_can( self::MANAGE_CAPS ) && ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Insufficient permissions.', 'gone-control' ) );
@@ -492,110 +447,6 @@ class Settings {
 		$db->delete_entries( $ids );
 
 		self::redirectWithStatus( 'deleted' );
-	}
-
-	public static function handleImportEntries(): void {
-		if ( ! current_user_can( self::MANAGE_CAPS ) && ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Insufficient permissions.', 'gone-control' ) );
-		}
-
-		check_admin_referer( 'gone_control_import_entries' );
-
-		if ( empty( $_FILES['gone_control_import_file']['tmp_name'] ) ) {
-			self::redirectImportStatus( 'error', 0, 0 );
-		}
-
-		$type = isset( $_POST['gone_control_import_type'] ) ? sanitize_key( wp_unslash( $_POST['gone_control_import_type'] ) ) : '';
-		$tmp_name = sanitize_text_field( wp_unslash( $_FILES['gone_control_import_file']['tmp_name'] ) );
-
-		if ( ! is_uploaded_file( $tmp_name ) ) {
-			self::redirectImportStatus( 'error', 0, 0 );
-		}
-
-		if ( 'csv' === $type ) {
-			$urls = self::extractUrlsFromCsv( $tmp_name );
-		} elseif ( 'text' === $type ) {
-			$urls = self::extractUrlsFromText( $tmp_name );
-		} else {
-			self::redirectImportStatus( 'error', 0, 0 );
-		}
-
-		$urls = array_values( array_unique( array_filter( $urls ) ) );
-		$added = 0;
-		$skipped = 0;
-
-		if ( [] === $urls ) {
-			self::redirectImportStatus( 'imported', 0, 0 );
-		}
-
-		$db = new Database();
-		foreach ( $urls as $url ) {
-			$path = $db->normalize_path( $url );
-
-			if ( '/' === $path || $db->url_exists( $path ) ) {
-				$skipped++;
-				continue;
-			}
-
-			$db->store_url( $url, 'import', 0 );
-			$added++;
-		}
-
-		self::redirectImportStatus( 'imported', $added, $skipped );
-	}
-
-	private static function extractUrlsFromCsv( string $file_path ): array {
-		$urls = [];
-		$handle = fopen( $file_path, 'r' );
-		if ( false === $handle ) {
-			return [];
-		}
-
-		while ( ( $row = fgetcsv( $handle ) ) !== false ) {
-			if ( ! isset( $row[0] ) ) {
-				continue;
-			}
-
-			$url = trim( (string) $row[0] );
-			if ( '' === $url ) {
-				continue;
-			}
-
-			$urls[] = $url;
-		}
-
-		fclose( $handle );
-
-		return $urls;
-	}
-
-	private static function extractUrlsFromText( string $file_path ): array {
-		$lines = file( $file_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES );
-		if ( false === $lines ) {
-			return [];
-		}
-
-		return array_map(
-			static function ( string $line ): string {
-				return trim( $line );
-			},
-			$lines
-		);
-	}
-
-	private static function redirectImportStatus( string $status, int $added, int $skipped ): void {
-		$redirect = admin_url( 'admin.php?page=gone-control-import' );
-		$redirect = add_query_arg(
-			[
-				'gone_control_import_status'  => $status,
-				'gone_control_import_added'   => $added,
-				'gone_control_import_skipped' => $skipped,
-			],
-			$redirect
-		);
-
-		wp_safe_redirect( $redirect );
-		exit;
 	}
 
 	private static function redirectWithStatus( string $status ): void {
