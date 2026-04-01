@@ -5,10 +5,7 @@
 	"license": "GPL-2.0-or-later",
 	"autoload": {
 		"psr-4": {
-			"iTRON\\WPGoneControl\\": "src/"
+			"iTRON\\GoneControl\\": "src/"
 		}
-	},
-	"require": {
-		"htmlburger/carbon-fields": "^3"
 	}
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace iTRON\WPGoneControl;
+namespace iTRON\GoneControl;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
@@ -50,6 +50,7 @@ class Database {
 		global $wpdb;
 
 		$path       = $this->normalize_path( $url );
+		$table_name = $this->get_table_name();
 
 		if ( '/' === $path ) {
 			return;
@@ -57,9 +58,10 @@ class Database {
 
 		$hash = md5( $path );
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- This plugin stores data in its own custom table; values remain prepared and the table name comes from $wpdb->prefix.
 		$wpdb->query(
 			$wpdb->prepare(
-				"INSERT IGNORE INTO {$this->get_table_name()} (object_type, object_id, url_path, url_hash, deleted_at)
+				"INSERT IGNORE INTO {$table_name} (object_type, object_id, url_path, url_hash, deleted_at)
 				VALUES (%s, %d, %s, %s, %s)",
 				$object_type,
 				$object_id,
@@ -68,34 +70,41 @@ class Database {
 				current_time( 'mysql' )
 			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter
 	}
 
 	public function url_exists( $path ): bool {
 		global $wpdb;
 
-		$hash = md5( $path );
+		$hash       = md5( $path );
+		$table_name = $this->get_table_name();
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- This plugin stores data in its own custom table; values remain prepared and the table name comes from $wpdb->prefix.
 		return (bool) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT id FROM {$this->get_table_name()} WHERE url_hash = %s LIMIT 1",
+				"SELECT id FROM {$table_name} WHERE url_hash = %s LIMIT 1",
 				$hash
 			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter
 	}
 
 	public function get_entries( int $limit = 100 ): array {
 		global $wpdb;
+		$table_name = $this->get_table_name();
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- This plugin stores data in its own custom table; values remain prepared and the table name comes from $wpdb->prefix.
 		return (array) $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT id, object_type, object_id, url_path, deleted_at
-				FROM {$this->get_table_name()}
+				FROM {$table_name}
 				ORDER BY deleted_at DESC
 				LIMIT %d",
 				$limit
 			),
 			ARRAY_A
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter
 	}
 
 	public function delete_entries( array $ids ): int {
@@ -107,9 +116,17 @@ class Database {
 			return 0;
 		}
 
-		return (int) $wpdb->query( $wpdb->prepare(
-			"DELETE FROM {$this->get_table_name()} WHERE id IN (%s)",
-			implode( ',', $ids )
-		) );
+		$deleted = 0;
+
+		foreach ( $ids as $id ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Deleting from the plugin's custom table uses the dedicated wpdb helper.
+			$result = $wpdb->delete( $this->get_table_name(), [ 'id' => $id ], [ '%d' ] );
+
+			if ( false !== $result ) {
+				$deleted += (int) $result;
+			}
+		}
+
+		return $deleted;
 	}
 }

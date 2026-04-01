@@ -1,6 +1,6 @@
 (function ($) {
-	const config = window.wpGoneControlEntries || {};
-	const storageKeyPrefix = config.storageKeyPrefix || 'gone_control_entries_per_page_';
+	const config = window.gonecontrolAdminEntries || {};
+	const storageKeyPrefix = config.storageKeyPrefix || 'gonecontrol_entries_per_page_';
 	const userId = typeof config.userId === 'number' ? config.userId : 0;
 	const storageKey = `${storageKeyPrefix}${userId}`;
 

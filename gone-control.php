@@ -3,7 +3,7 @@
  * Plugin Name: Gone Control
  * Plugin URI: https://github.com/hokoo/wp-410
  * Description: Stores URLs of removed public objects and serves HTTP 410 for them.
- * Version: 0.2.2
+ * Version: 0.4
  * Author: Igor Tron (itron)
  * Author URI: https://github.com/hokoo
  * License: GPL-2.0-or-later
@@ -11,20 +11,18 @@
  * Text Domain: gone-control
  */
 
-namespace iTRON\WPGoneControl;
+namespace iTRON\GoneControl;
 
-use iTRON\WPGoneControl\Controller\Activation;
-use iTRON\WPGoneControl\Controller\MainController;
-use iTRON\WPGoneControl\Controller\TemplateController;
+use iTRON\GoneControl\Controller\Activation;
+use iTRON\GoneControl\Controller\ImportController;
+use iTRON\GoneControl\Controller\MainController;
+use iTRON\GoneControl\Controller\TemplateController;
 
-const PLUGIN_SLUG = 'gone-control';
-const VERSION     = '0.2.2';
+const GONECONTROL_PLUGIN_SLUG = 'gone-control';
+const GONECONTROL_VERSION     = '0.4';
 
-const PLUGIN_MAIN_FILE_PATH = __FILE__;
-define( __NAMESPACE__ . '\PLUGIN_NAME', plugin_basename( __FILE__ ) );
-define( __NAMESPACE__ . '\PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( __NAMESPACE__ . '\PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( __NAMESPACE__ . '\OPTIONS_MODE', is_multisite() ? 'network' : 'theme_options' );
+define( __NAMESPACE__ . '\GONECONTROL_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( __NAMESPACE__ . '\GONECONTROL_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 if ( ! defined( 'ABSPATH' ) ) {
 	return;
@@ -34,13 +32,17 @@ if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 	require __DIR__ . '/vendor/autoload.php';
 }
 
-$gc_db      = new Database();
-$gc_main    = new MainController( $gc_db, new TemplateController( $gc_db ) );
-$gc_activation = new Activation( $gc_db );
+Settings::setImportController( new ImportController( new Database() ) );
+Settings::init();
 
-register_activation_hook( __FILE__, [ $gc_activation, 'processActivationHook' ] );
+register_activation_hook(
+	__FILE__,
+	[
+		new Activation( new Database() ),
+		'processActivationHook',
+	]
+);
 
-$gc_activation::init();
-$gc_main->register();
+Activation::init();
 
-( new Settings() )::init();
+( new MainController( new Database(), new TemplateController( new Database() ) ) )->register();

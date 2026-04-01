@@ -1,10 +1,10 @@
 <?php
 
-namespace iTRON\WPGoneControl\Controller;
+namespace iTRON\GoneControl\Controller;
 
 use WP_Post;
 use WP_User;
-use iTRON\WPGoneControl\Database;
+use iTRON\GoneControl\Database;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
@@ -31,6 +31,10 @@ class MainController {
 			return;
 		}
 
+		if ( ! \iTRON\GoneControl\Settings::isPostTypeEnabled( $post->post_type ) ) {
+			return;
+		}
+
 		if ( ! $this->post_is_public( $post ) ) {
 			return;
 		}
@@ -44,6 +48,10 @@ class MainController {
 	public function handle_term_remove( $term, $taxonomy ) {
 		$term_obj = get_term( $term, $taxonomy );
 		if ( ! $term_obj || is_wp_error( $term_obj ) ) {
+			return;
+		}
+
+		if ( ! \iTRON\GoneControl\Settings::isTaxonomyEnabled( $taxonomy ) ) {
 			return;
 		}
 
@@ -65,12 +73,16 @@ class MainController {
 	}
 
 	private function is_term_public( $term_id, $taxonomy ): bool {
-		return apply_filters( 'itron/gone-control/is-term-public', true, $term_id, $taxonomy );
+		return apply_filters( 'gonecontrol_is_term_public', true, $term_id, $taxonomy );
 	}
 
 	public function handle_user_remove( $user_id ) {
 		$user = get_user_by( 'id', $user_id );
 		if ( ! $user ) {
+			return;
+		}
+
+		if ( ! \iTRON\GoneControl\Settings::isUserEnabled( (array) $user->roles ) ) {
 			return;
 		}
 
@@ -86,18 +98,18 @@ class MainController {
 
 	private function post_is_public( WP_Post $post ): bool {
 		$post_type = get_post_type_object( $post->post_type );
-		$statuses  = apply_filters( 'itron/gone-control/post-statuses', [ 'publish' ] );
+		$statuses  = apply_filters( 'gonecontrol_post_statuses', [ 'publish' ] );
 
 		if ( ! $post_type || ! $post_type->public ) {
 			return false;
 		}
 
 		$public = in_array( $post->post_status, (array) $statuses, true );
-		return apply_filters( 'itron/gone-control/is-post-public', $public, $post );
+		return apply_filters( 'gonecontrol_is_post_public', $public, $post );
 	}
 
 	private function user_is_public( WP_User $user ): bool {
 		// Attention: return boolean when filtering this!
-		return apply_filters( 'itron/gone-control/is-user-public', true, $user );
+		return apply_filters( 'gonecontrol_is_user_public', true, $user );
 	}
 }
