@@ -6,5 +6,5 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'iTRON\\WPGoneControl\\' => array($baseDir . '/src'),
+    'iTRON\\GoneControl\\' => array($baseDir . '/src'),
 );

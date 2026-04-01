@@ -1,8 +1,8 @@
 <?php
 
-namespace iTRON\WPGoneControl\Controller;
+namespace iTRON\GoneControl\Controller;
 
-use iTRON\WPGoneControl\Database;
+use iTRON\GoneControl\Database;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
@@ -32,7 +32,7 @@ class TemplateController {
 			return;
 		}
 
-		$proceed = apply_filters( 'itron/gone-control/send-410', true, $path );
+		$proceed = apply_filters( 'gonecontrol_send_410', true, $path );
 		if ( ! $proceed ) {
 			return;
 		}
@@ -40,6 +40,6 @@ class TemplateController {
 		status_header( 410 );
 		nocache_headers();
 
-		do_action( 'itron/gone-control/410-sent', $path );
+		do_action( 'gonecontrol_410_sent', $path );
 	}
 }

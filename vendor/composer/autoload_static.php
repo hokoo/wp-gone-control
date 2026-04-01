@@ -9,12 +9,12 @@ class ComposerStaticInit3853fa65a2185fceec2f4843729719a5
     public static $prefixLengthsPsr4 = array (
         'i' =>
         array (
-            'iTRON\\WPGoneControl\\' => 20,
+            'iTRON\\GoneControl\\' => 18,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'iTRON\\WPGoneControl\\' =>
+        'iTRON\\GoneControl\\' =>
         array (
             0 => __DIR__ . '/../..' . '/src',
         ),

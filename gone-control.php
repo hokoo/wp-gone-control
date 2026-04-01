@@ -11,21 +11,18 @@
  * Text Domain: gone-control
  */
 
-namespace iTRON\WPGoneControl;
+namespace iTRON\GoneControl;
 
-use iTRON\WPGoneControl\Controller\Activation;
-use iTRON\WPGoneControl\Controller\ImportController;
-use iTRON\WPGoneControl\Controller\MainController;
-use iTRON\WPGoneControl\Controller\TemplateController;
+use iTRON\GoneControl\Controller\Activation;
+use iTRON\GoneControl\Controller\ImportController;
+use iTRON\GoneControl\Controller\MainController;
+use iTRON\GoneControl\Controller\TemplateController;
 
-const PLUGIN_SLUG = 'gone-control';
-const VERSION     = '0.3';
+const GONECONTROL_PLUGIN_SLUG = 'gone-control';
+const GONECONTROL_VERSION     = '0.4';
 
-const PLUGIN_MAIN_FILE_PATH = __FILE__;
-define( __NAMESPACE__ . '\PLUGIN_NAME', plugin_basename( __FILE__ ) );
-define( __NAMESPACE__ . '\PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( __NAMESPACE__ . '\PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( __NAMESPACE__ . '\OPTIONS_MODE', is_multisite() ? 'network' : 'theme_options' );
+define( __NAMESPACE__ . '\GONECONTROL_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( __NAMESPACE__ . '\GONECONTROL_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 if ( ! defined( 'ABSPATH' ) ) {
 	return;
@@ -35,15 +32,17 @@ if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 	require __DIR__ . '/vendor/autoload.php';
 }
 
-$gc_db      = new Database();
-$gc_main    = new MainController( $gc_db, new TemplateController( $gc_db ) );
-$gc_activation = new Activation( $gc_db );
-$gc_import = new ImportController( $gc_db );
-
-register_activation_hook( __FILE__, [ $gc_activation, 'processActivationHook' ] );
-
-$gc_activation::init();
-$gc_main->register();
-
-Settings::setImportController( $gc_import );
+Settings::setImportController( new ImportController( new Database() ) );
 Settings::init();
+
+register_activation_hook(
+	__FILE__,
+	[
+		new Activation( new Database() ),
+		'processActivationHook',
+	]
+);
+
+Activation::init();
+
+( new MainController( new Database(), new TemplateController( new Database() ) ) )->register();
