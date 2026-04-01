@@ -1,27 +1,26 @@
 <?php
 
-namespace iTRON\WPGoneControl;
+namespace iTRON\GoneControl;
 
-use iTRON\WPGoneControl\Controller\ImportController;
+use iTRON\GoneControl\Controller\ImportController;
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 class Settings {
-	public static string $optionPrefix;
-	const MANAGE_CAPS = 'gone_control_manage_options';
+	private static string $optionPrefix = 'gonecontrol_';
+	private static string $legacyOptionPrefix = 'gone-control_';
+	public const GONECONTROL_MANAGE_CAPABILITY = 'gonecontrol_manage_options';
 	private static ?ImportController $importController = null;
 
 	public static function init(): void {
 		self::getImportController();
 
 		add_action( 'admin_menu', [ self::class, 'registerAdminPages' ] );
-		add_action( 'admin_post_gone_control_add_entry', [ self::class, 'handleAddEntry' ] );
-		add_action( 'admin_post_gone_control_delete_entries', [ self::class, 'handleDeleteEntries' ] );
-		add_action( 'admin_post_gone_control_save_settings', [ self::class, 'handleSaveSettings' ] );
-		add_action( 'admin_post_gone_control_import_entries', [ self::getImportController(), 'handleImportEntries' ] );
+		add_action( 'admin_post_gonecontrol_add_entry', [ self::class, 'handleAddEntry' ] );
+		add_action( 'admin_post_gonecontrol_delete_entries', [ self::class, 'handleDeleteEntries' ] );
+		add_action( 'admin_post_gonecontrol_save_settings', [ self::class, 'handleSaveSettings' ] );
+		add_action( 'admin_post_gonecontrol_import_entries', [ self::getImportController(), 'handleImportEntries' ] );
 		add_action( 'admin_enqueue_scripts', [ self::class, 'enqueueAdminAssets' ] );
-
-		self::$optionPrefix = PLUGIN_SLUG . '_';
 	}
 
 	public static function setImportController( ImportController $controller ): void {
@@ -32,8 +31,8 @@ class Settings {
 		$capability = self::getManageCapability();
 
 		add_menu_page(
-			__( 'WP Gone Control', 'gone-control' ),
-			__( 'WP Gone Control', 'gone-control' ),
+			__( 'Gone Control', 'gone-control' ),
+			__( 'Gone Control', 'gone-control' ),
 			$capability,
 			'gone-control',
 			[ self::class, 'renderEntriesPage' ],
@@ -42,7 +41,7 @@ class Settings {
 
 		add_submenu_page(
 			'gone-control',
-			__( 'WP Gone Control', 'gone-control' ),
+			__( 'Gone Control', 'gone-control' ),
 			__( '410 list', 'gone-control' ),
 			$capability,
 			'gone-control',
@@ -77,8 +76,8 @@ class Settings {
 	}
 
 	private static function getManageCapability(): string {
-		if ( current_user_can( self::MANAGE_CAPS ) ) {
-			return self::MANAGE_CAPS;
+		if ( current_user_can( self::GONECONTROL_MANAGE_CAPABILITY ) ) {
+			return self::GONECONTROL_MANAGE_CAPABILITY;
 		}
 
 		return 'manage_options';
@@ -193,11 +192,10 @@ class Settings {
 	private static function renderEntriesHtml(): string {
 		$db      = new Database();
 		$entries = $db->get_entries();
-		$status  = isset( $_GET['gone_control_status'] ) ? sanitize_key( wp_unslash( $_GET['gone_control_status'] ) ) : '';
-		$notice  = self::getNoticeData( $status );
+		$notice  = self::getNoticeDataFromRequest();
 
 		ob_start();
-		$template_path = PLUGIN_DIR . 'templates/admin-entries.php';
+		$template_path = GONECONTROL_PLUGIN_DIR . 'templates/admin-entries.php';
 		load_template(
 			$template_path,
 			false,
@@ -216,48 +214,48 @@ class Settings {
 		}
 
 		wp_enqueue_script(
-			'gone-control-admin-entries',
-			PLUGIN_URL . 'assets/admin-entries.js',
+			'gonecontrol-admin-entries',
+			GONECONTROL_PLUGIN_URL . 'assets/admin-entries.js',
 			[ 'jquery' ],
-			VERSION,
+			GONECONTROL_VERSION,
 			true
 		);
 
 		wp_enqueue_style(
-			'gone-control-admin-entries',
-			PLUGIN_URL . 'assets/admin-entries.css',
+			'gonecontrol-admin-entries',
+			GONECONTROL_PLUGIN_URL . 'assets/admin-entries.css',
 			[],
-			VERSION
+			GONECONTROL_VERSION
 		);
 
 		wp_localize_script(
-			'gone-control-admin-entries',
-			'wpGoneControlEntries',
+			'gonecontrol-admin-entries',
+			'gonecontrolAdminEntries',
 			[
 				'userId'           => get_current_user_id(),
-				'storageKeyPrefix' => 'gone_control_entries_per_page_',
+				'storageKeyPrefix' => 'gonecontrol_entries_per_page_',
 			]
 		);
 	}
 
 	public static function renderEntriesPage(): void {
-		if ( ! current_user_can( self::MANAGE_CAPS ) && ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( self::GONECONTROL_MANAGE_CAPABILITY ) && ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Insufficient permissions.', 'gone-control' ) );
 		}
 
 		echo '<div class="wrap">';
-		echo '<h1>' . esc_html__( 'WP Gone Control', 'gone-control' ) . '</h1>';
+		echo '<h1>' . esc_html__( 'Gone Control', 'gone-control' ) . '</h1>';
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML is assembled from escaped template output in renderEntriesHtml().
 		echo self::renderEntriesHtml();
 		echo '</div>';
 	}
 
 	public static function renderSettingsPage(): void {
-		if ( ! current_user_can( self::MANAGE_CAPS ) && ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( self::GONECONTROL_MANAGE_CAPABILITY ) && ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Insufficient permissions.', 'gone-control' ) );
 		}
 
-		$status = isset( $_GET['gone_control_settings_status'] ) ? sanitize_key( wp_unslash( $_GET['gone_control_settings_status'] ) ) : '';
-		$notice = self::getSettingsNoticeData( $status );
+		$notice = self::getSettingsNoticeDataFromRequest();
 
 		$post_type_options = self::getPostTypeOptions();
 		$taxonomy_options  = self::getTaxonomyOptions();
@@ -288,21 +286,21 @@ class Settings {
 
 		echo '<p>' . esc_html__( 'Select the post types and taxonomies that should be processed by Gone Control.', 'gone-control' ) . '</p>';
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
-		wp_nonce_field( 'gone_control_save_settings' );
-		echo '<input type="hidden" name="action" value="gone_control_save_settings" />';
+		wp_nonce_field( 'gonecontrol_save_settings' );
+		echo '<input type="hidden" name="action" value="gonecontrol_save_settings" />';
 
 		$post_types_description = $post_types_locked
-			? __( 'Post types are locked because the WP_GONE_CONTROL_POST_TYPES constant is defined.', 'gone-control' )
+			? __( 'Post types are locked because the GONECONTROL_POST_TYPES constant is defined.', 'gone-control' )
 			: '';
 		self::renderCheckboxGroup( 'post_types', __( 'Post types', 'gone-control' ), $post_type_options, $post_type_defaults, $post_types_locked, $post_types_description );
 
 		$taxonomies_description = $taxonomies_locked
-			? __( 'Taxonomies are locked because the WP_GONE_CONTROL_TAXONOMIES constant is defined.', 'gone-control' )
+			? __( 'Taxonomies are locked because the GONECONTROL_TAXONOMIES constant is defined.', 'gone-control' )
 			: '';
 		self::renderCheckboxGroup( 'taxonomies', __( 'Taxonomies', 'gone-control' ), $taxonomy_options, $taxonomy_defaults, $taxonomies_locked, $taxonomies_description );
 
 		$roles_description = $roles_locked
-			? __( 'User roles are locked because the WP_GONE_CONTROL_USER_ROLES constant is defined.', 'gone-control' )
+			? __( 'User roles are locked because the GONECONTROL_USER_ROLES constant is defined.', 'gone-control' )
 			: '';
 		self::renderCheckboxGroup( 'user_roles', __( 'User roles', 'gone-control' ), $role_options, $role_defaults, $roles_locked, $roles_description );
 
@@ -324,14 +322,12 @@ class Settings {
 		echo '<div class="gone-control-settings-group">';
 
 		foreach ( $options as $value => $option_label ) {
-			$checked = in_array( $value, $selected, true ) ? 'checked' : '';
-			$disabled_attr = $disabled ? 'disabled' : '';
 			printf(
 				'<label style="display:block;margin:4px 0;"><input type="checkbox" name="%s[]" value="%s" %s %s /> %s</label>',
 				esc_attr( $slug ),
 				esc_attr( $value ),
-				$checked,
-				$disabled_attr,
+				checked( in_array( $value, $selected, true ), true, false ),
+				disabled( $disabled, true, false ),
 				esc_html( $option_label )
 			);
 		}
@@ -341,35 +337,38 @@ class Settings {
 	}
 
 	public static function handleSaveSettings(): void {
-		if ( ! current_user_can( self::MANAGE_CAPS ) && ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( self::GONECONTROL_MANAGE_CAPABILITY ) && ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Insufficient permissions.', 'gone-control' ) );
 		}
 
-		check_admin_referer( 'gone_control_save_settings' );
+		check_admin_referer( 'gonecontrol_save_settings' );
 
 		$post_type_options = array_keys( self::getPostTypeOptions() );
 		$taxonomy_options  = array_keys( self::getTaxonomyOptions() );
 		$role_options      = array_keys( self::getRoleOptions() );
 
 		if ( ! self::isOverloaded( 'post_types' ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Values are normalized against the allowed post type list immediately below.
 			$post_types = isset( $_POST['post_types'] ) ? (array) wp_unslash( $_POST['post_types'] ) : [];
 			$post_types = self::normalizeSelection( $post_types, $post_type_options );
 			update_option( self::$optionPrefix . 'post_types', $post_types );
 		}
 
 		if ( ! self::isOverloaded( 'taxonomies' ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Values are normalized against the allowed taxonomy list immediately below.
 			$taxonomies = isset( $_POST['taxonomies'] ) ? (array) wp_unslash( $_POST['taxonomies'] ) : [];
 			$taxonomies = self::normalizeSelection( $taxonomies, $taxonomy_options );
 			update_option( self::$optionPrefix . 'taxonomies', $taxonomies );
 		}
 
 		if ( ! self::isOverloaded( 'user_roles' ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Values are normalized against the allowed role list immediately below.
 			$roles = isset( $_POST['user_roles'] ) ? (array) wp_unslash( $_POST['user_roles'] ) : [];
 			$roles = self::normalizeSelection( $roles, $role_options );
 			update_option( self::$optionPrefix . 'user_roles', $roles );
 		}
 
-		$redirect = add_query_arg( 'gone_control_settings_status', 'saved', admin_url( 'admin.php?page=gone-control-settings' ) );
+		$redirect = add_query_arg( 'gonecontrol_settings_status', 'saved', admin_url( 'admin.php?page=gone-control-settings' ) );
 		wp_safe_redirect( $redirect );
 		exit;
 	}
@@ -412,14 +411,28 @@ class Settings {
 		];
 	}
 
+	private static function getNoticeDataFromRequest(): array {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin notice parameter sourced from this plugin redirect.
+		$status = isset( $_GET['gonecontrol_status'] ) ? sanitize_key( wp_unslash( $_GET['gonecontrol_status'] ) ) : '';
+
+		return self::getNoticeData( $status );
+	}
+
+	private static function getSettingsNoticeDataFromRequest(): array {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin notice parameter sourced from this plugin redirect.
+		$status = isset( $_GET['gonecontrol_settings_status'] ) ? sanitize_key( wp_unslash( $_GET['gonecontrol_settings_status'] ) ) : '';
+
+		return self::getSettingsNoticeData( $status );
+	}
+
 	public static function handleAddEntry(): void {
-		if ( ! current_user_can( self::MANAGE_CAPS ) && ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( self::GONECONTROL_MANAGE_CAPABILITY ) && ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Insufficient permissions.', 'gone-control' ) );
 		}
 
-		check_admin_referer( 'gone_control_add_entry' );
+		check_admin_referer( 'gonecontrol_add_entry' );
 
-		$url = isset( $_POST['gone_control_url'] ) ? sanitize_text_field( wp_unslash( $_POST['gone_control_url'] ) ) : '';
+		$url = isset( $_POST['gonecontrol_url'] ) ? sanitize_text_field( wp_unslash( $_POST['gonecontrol_url'] ) ) : '';
 		$url = trim( $url );
 
 		if ( '' === $url ) {
@@ -433,14 +446,14 @@ class Settings {
 	}
 
 	public static function handleDeleteEntries(): void {
-		if ( ! current_user_can( self::MANAGE_CAPS ) && ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( self::GONECONTROL_MANAGE_CAPABILITY ) && ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Insufficient permissions.', 'gone-control' ) );
 		}
 
-		check_admin_referer( 'gone_control_delete_entries' );
+		check_admin_referer( 'gonecontrol_delete_entries' );
 
 		//phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$ids = isset( $_POST['gone_control_ids'] ) ? (array) wp_unslash( $_POST['gone_control_ids'] ) : [];
+		$ids = isset( $_POST['gonecontrol_ids'] ) ? (array) wp_unslash( $_POST['gonecontrol_ids'] ) : [];
 		$ids = array_map( 'absint', $ids ); // Sanitize IDs
 
 		$db = new Database();
@@ -455,16 +468,20 @@ class Settings {
 			$redirect = admin_url( 'admin.php?page=gone-control' );
 		}
 
-		wp_safe_redirect( add_query_arg( 'gone_control_status', $status, $redirect ) );
+		wp_safe_redirect( add_query_arg( 'gonecontrol_status', $status, $redirect ) );
 		exit;
 	}
 
 	private static function isOverloaded( $optionSlug ): bool {
-		return defined( 'WP_GONE_CONTROL_' . strtoupper( $optionSlug ) );
+		return defined( self::getOverloadConstantName( $optionSlug ) );
 	}
 
 	private static function getOverloaded( $optionSlug ) {
-		return constant( 'WP_GONE_CONTROL_' . strtoupper( $optionSlug ) );
+		return constant( self::getOverloadConstantName( $optionSlug ) );
+	}
+
+	private static function getOverloadConstantName( string $optionSlug ): string {
+		return 'GONECONTROL_' . strtoupper( $optionSlug );
 	}
 
 	/**
@@ -480,8 +497,13 @@ class Settings {
 		}
 
 		$option_name = self::$optionPrefix . $optionSlug;
+		$value       = get_option( $option_name, null );
 
-		return get_option( $option_name );
+		if ( null !== $value ) {
+			return $value;
+		}
+
+		return get_option( self::$legacyOptionPrefix . $optionSlug );
 	}
 
 	public static function getInterval(): int {
