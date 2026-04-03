@@ -7,6 +7,10 @@ on:
 env:
   WPORG_PLUGIN_SLUG: gone-control
 
+concurrency:
+  group: process-update-${{ github.event.release.id }}
+  cancel-in-progress: false
+
 permissions: write-all
 jobs:
   build:
@@ -46,11 +50,37 @@ jobs:
       - name: Zip the plugin directory
         run: zip -r "${{ steps.release_meta.outputs.zip_name }}" "$WPORG_PLUGIN_SLUG"
 
+      - name: Check existing release artifact
+        id: release_asset
+        uses: actions/github-script@v7
+        env:
+          RELEASE_ASSET_NAME: ${{ steps.release_meta.outputs.zip_name }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const tag = context.payload.release.tag_name;
+            const assetName = process.env.RELEASE_ASSET_NAME;
+
+            const release = await github.rest.repos.getReleaseByTag({
+              owner,
+              repo,
+              tag,
+            });
+
+            const assetExists = release.data.assets.some((asset) => asset.name === assetName);
+            core.setOutput("exists", assetExists ? "true" : "false");
+
       - name: Upload Release Artifact
+        if: steps.release_asset.outputs.exists != 'true'
         uses: AButler/upload-release-assets@v3.0
         with:
           files: ./${{ steps.release_meta.outputs.zip_name }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Skip Release Artifact Upload
+        if: steps.release_asset.outputs.exists == 'true'
+        run: echo "Release asset ${{ steps.release_meta.outputs.zip_name }} already exists. Skipping upload."
 
       - name: Set target branch
         id: branch
