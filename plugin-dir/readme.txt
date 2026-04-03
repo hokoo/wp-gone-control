@@ -5,7 +5,7 @@ Tags: contact form telegram,contact form 7,telegram
 Requires at least: 5.6
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 0.4
+Stable tag: 0.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,5 +35,5 @@ Once activated, the plugin works automatically. When a visitor tries to access a
 
 == Changelog ==
 
-= 0.2.0 =
-* Local development setup.
+= 0.5.0 =
+* Initial public release in the WordPress plugin repository.

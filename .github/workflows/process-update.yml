@@ -4,6 +4,9 @@ on:
     types:
       - published
 
+env:
+  WPORG_PLUGIN_SLUG: gone-control
+
 permissions: write-all
 jobs:
   build:
@@ -29,16 +32,16 @@ jobs:
           find . -mindepth 1 -maxdepth 1 -not -name 'plugin-dir' -not -name '.git' -exec rm -rf {} +
 
       # Rename plugin directory to the plugin name
-      - run: mv plugin-dir gone-control
+      - run: mv plugin-dir "$WPORG_PLUGIN_SLUG"
 
       # Zip the plugin directory
       - name: Zip the plugin directory
-        run: zip -r gone-control-wp-plugin.zip gone-control
+        run: zip -r "${WPORG_PLUGIN_SLUG}-wp-plugin.zip" "$WPORG_PLUGIN_SLUG"
 
       - name: Upload Release Artifact
         uses: AButler/upload-release-assets@v3.0
         with:
-          files: ./gone-control-wp-plugin.zip
+          files: ./${{ env.WPORG_PLUGIN_SLUG }}-wp-plugin.zip
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set target branch
@@ -51,7 +54,7 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           export TEMP_DIR=$(mktemp -d)
-          cp -r gone-control/* "$TEMP_DIR/"
+          cp -r "$WPORG_PLUGIN_SLUG"/* "$TEMP_DIR/"
 
           git fetch origin ${{ steps.branch.outputs.branch_name }} || true
           git worktree add --force dist-worktree origin/${{ steps.branch.outputs.branch_name }}
@@ -77,6 +80,6 @@ jobs:
         env:
           SVN_USERNAME: ${{ secrets.WPORG_USERNAME }}
           SVN_PASSWORD: ${{ secrets.WPORG_PASSWORD }}
-          BUILD_DIR: ./gone-control
-          SLUG: gone-control
+          BUILD_DIR: ./${{ env.WPORG_PLUGIN_SLUG }}
+          SLUG: ${{ env.WPORG_PLUGIN_SLUG }}
           VERSION: ${{ steps.clean_version.outputs.value }}
