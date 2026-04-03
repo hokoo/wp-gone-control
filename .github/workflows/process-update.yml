@@ -15,6 +15,14 @@ jobs:
       - name: Check out the source code
         uses: actions/checkout@v3
 
+      - name: Prepare release metadata
+        id: release_meta
+        shell: bash
+        run: |
+          version="$(printf '%s' '${{ github.event.release.tag_name }}' | sed -E 's/^version-//I; s/^v-?//I')"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "zip_name=${WPORG_PLUGIN_SLUG}-${version}.zip" >> "$GITHUB_OUTPUT"
+
       - uses: shivammathur/setup-php@v2
         name: Set up PHP
         with:
@@ -36,12 +44,12 @@ jobs:
 
       # Zip the plugin directory
       - name: Zip the plugin directory
-        run: zip -r "${WPORG_PLUGIN_SLUG}-wp-plugin.zip" "$WPORG_PLUGIN_SLUG"
+        run: zip -r "${{ steps.release_meta.outputs.zip_name }}" "$WPORG_PLUGIN_SLUG"
 
       - name: Upload Release Artifact
         uses: AButler/upload-release-assets@v3.0
         with:
-          files: ./${{ env.WPORG_PLUGIN_SLUG }}-wp-plugin.zip
+          files: ./${{ steps.release_meta.outputs.zip_name }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set target branch
@@ -70,10 +78,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Prepare version without "v"
-        id: clean_version
-        run: echo "value=${{ github.event.release.tag_name }}" | sed -E 's/^(v-?|version-)//' >> $GITHUB_OUTPUT
-
       - name: Deploy to WordPress.org (production only)
         if: ${{ github.event.release.prerelease == false }}
         uses: 10up/action-wordpress-plugin-deploy@stable
@@ -82,4 +86,4 @@ jobs:
           SVN_PASSWORD: ${{ secrets.WPORG_PASSWORD }}
           BUILD_DIR: ./${{ env.WPORG_PLUGIN_SLUG }}
           SLUG: ${{ env.WPORG_PLUGIN_SLUG }}
-          VERSION: ${{ steps.clean_version.outputs.value }}
+          VERSION: ${{ steps.release_meta.outputs.version }}
